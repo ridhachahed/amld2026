@@ -33,18 +33,21 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install deps
+      - name: Clean install deps
         working-directory: astro-workshop
-        run: npm install --no-audit --no-fund
+        run: |
+          set -euxo pipefail
+          rm -rf node_modules
+          npm install --no-audit --no-fund
+          npm rebuild
 
       - name: Debug install output
         working-directory: astro-workshop
         run: |
           set -euxo pipefail
-          ls -la
-          ls -la node_modules/.bin || true
-          test -f node_modules/.bin/astro
-          node -p "require('./node_modules/astro/package.json').version"
+          npm ls astro || true
+          ls -la node_modules | head
+          find node_modules -maxdepth 3 -type f -name astro -o -path "*/.bin/*" | head -n 50
           node -v
           npm -v
 
@@ -54,7 +57,7 @@ jobs:
 
       - name: Build
         working-directory: astro-workshop
-        run: npx astro build
+        run: npm run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
