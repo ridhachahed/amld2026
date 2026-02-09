@@ -1,0 +1,550 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+import Button from "@/components/bearnie/button/Button.astro";
+import Card from "@/components/bearnie/card/Card.astro";
+import CardHeader from "@/components/bearnie/card/CardHeader.astro";
+import CardTitle from "@/components/bearnie/card/CardTitle.astro";
+import CardDescription from "@/components/bearnie/card/CardDescription.astro";
+import CardContent from "@/components/bearnie/card/CardContent.astro";
+import CardFooter from "@/components/bearnie/card/CardFooter.astro";
+
+const title =
+  "Deploy Enterprise Agents from Your Database in Less Than an Hour: MySQL HeatWave GenAI in Action";
+
+const details = {
+  date: "12/02/2026",
+  time: "09:00–12:30 CET",
+  location: "Garden 3BC (EPFL)",
+  level: "Intermediate",
+};
+
+const conferenceSite = "https://2026.appliedmldays.org/";
+const invitePage =
+  "https://2026.appliedmldays.org/programme-live-1?coday=2026-02-12&embed=&programType=calendar_v2&dtFormat=d/m";
+
+const inviteDownload = "/invite/workshop-invite.ics";
+
+const heroImages = {
+  title: {
+    src: "/assets/amld-workshop-title.png",
+    alt: "Workshop title graphic",
+  },
+  logo: {
+    src: "/assets/amld2026.png",
+    alt: "AMLD 2026 logo",
+  },
+  sakila: {
+    src: "/assets/sakila-amld.png",
+    alt: "Sakila / AMLD workshop graphic",
+  },
+};
+
+const agenda = [
+  {
+    time: "09:00–10:00",
+    title: "Introduction to OCI Cloud & MySQL AI Studio",
+    description: "Foundations: cloud basics, AI agents, and the MySQL Studio workflow.",
+  },
+  {
+    time: "10:00–10:30",
+    title: "Hands-on MySQL Studio tour",
+    description:
+      "Explore SQL, ML, GenAI queries, and vector operations in guided labs.",
+  },
+  {
+    time: "11:00–12:30",
+    title: "Build your own RAG Agent with custom tools",
+    description:
+      "Create a context-aware chatbot combining structured tables with unstructured docs (RAG).",
+  },
+];
+
+const chairs = [
+  {
+    name: "Ridha Chahed",
+    country: "Switzerland",
+    linkedin: "https://www.linkedin.com/in/ridha-chahed/",
+    email: "ridha.chahed@oracle.com",
+    photo: {
+      src: "/instructors/ridha-chahed.png",
+      alt: "Portrait of Ridha Chahed",
+    },
+  },
+  {
+    name: "Milos Vasic",
+    country: "Switzerland",
+    linkedin: "https://www.linkedin.com/in/milosvasic/",
+    email: "milos.vasic@oracle.com",
+    photo: {
+      src: "/instructors/milos-vasic.png",
+      alt: "Portrait of Milos Vasic",
+    },
+  },
+];
+
+const descriptionParagraphs = [
+  "This intensive hands-on workshop takes you on a complete journey from cloud fundamentals to building production-ready AI agents powered by MySQL HeatWave GenAI.",
+  "You’ll start with foundational concepts of cloud computing and AI agents, then dive deep into MySQL Studio through interactive labs covering SQL, machine learning, GenAI queries, and vector operations.",
+  "You’ll learn to create intelligent agents that seamlessly combine structured database queries with unstructured documents through advanced RAG capabilities.",
+];
+
+const chatbotCapabilities = [
+  "Query database tables using natural language (e.g., “Show me top customers from last quarter”) ",
+  "Answer questions from uploaded documents (PDFs, docs, presentations)",
+  "Combine structured and unstructured data for comprehensive insights",
+  "Automatically generate and execute SQL from conversational requests",
+];
+
+const highlights = [
+  "Configure multi-model AI access through OCI integration",
+  "Build RAG pipelines combining database tables with document knowledge",
+  "Implement natural language to SQL translation for intuitive data access",
+  "Create context-aware chatbots with citation tracking",
+  "Deploy production-ready solutions with enterprise security",
+];
+
+const applications = [
+  "Customer service automation",
+  "Business intelligence interfaces",
+  "Technical documentation assistants",
+  "Compliance Q&A systems",
+];
+---
+
+<BaseLayout title={title} description={title}>
+  <main class="min-h-screen">
+    <header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
+      <div
+        class="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3"
+      >
+        <a href="#top" class="flex items-center gap-2">
+          <img
+            src={heroImages.logo.src}
+            alt={heroImages.logo.alt}
+            loading="eager"
+            class="size-9 rounded-full border object-cover bg-background"
+          />
+          <span class="text-sm font-semibold tracking-tight"
+            >MySQL HeatWave GenAI</span
+          >
+        </a>
+
+        <nav class="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+          <a href="#overview" class="hover:text-foreground">Overview</a>
+          <a href="#agenda" class="hover:text-foreground">Agenda</a>
+          <a href="#prereqs" class="hover:text-foreground">Prereqs</a>
+          <a href="#instructors" class="hover:text-foreground">Instructors</a>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <Button href={inviteDownload} variant="default" size="sm">
+            Download invite
+          </Button>
+        </div>
+      </div>
+    </header>
+
+    <section id="top" class="relative overflow-hidden border-b">
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_500px_at_20%_20%,oklch(0.95_0.08_250)_0%,transparent_65%),radial-gradient(900px_500px_at_80%_15%,oklch(0.95_0.09_210)_0%,transparent_60%)]"
+      ></div>
+      <div
+        class="relative mx-auto grid w-full max-w-5xl gap-10 px-4 py-14 md:grid-cols-[1fr_360px] md:py-20"
+      >
+        <div class="max-w-2xl">
+          <div
+            class="mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-muted-foreground"
+          >
+            Deploy enterprise agents from your database
+          </div>
+
+          <h1
+            class="text-balance text-3xl font-semibold tracking-tight md:text-5xl"
+          >
+            Deploy Enterprise Agents from Your Database in Less Than an Hour:
+            <span class="bg-gradient-to-r from-primary via-info to-success bg-clip-text text-transparent">MySQL HeatWave GenAI</span>
+            in Action
+          </h1>
+          <p
+            class="mt-4 max-w-xl text-pretty text-base text-muted-foreground md:text-lg"
+          >
+            A practical, hands-on workshop showing how to build and deploy
+            GenAI-powered enterprise agents using MySQL HeatWave, your existing
+            data, and production-friendly patterns.
+          </p>
+
+          <div class="mt-7 flex flex-wrap gap-3">
+            <Button href={inviteDownload} variant="default">Download invite</Button>
+            <Button href="#agenda" variant="outline">View agenda</Button>
+            <Button href={conferenceSite} variant="ghost">AMLD 2026 site</Button>
+          </div>
+
+          <dl class="mt-10 grid gap-6 border-t pt-6 text-sm md:grid-cols-4">
+            <div>
+              <dt class="text-muted-foreground">Date</dt>
+              <dd class="mt-1 font-medium">{details.date}</dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Time</dt>
+              <dd class="mt-1 font-medium">{details.time}</dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Location</dt>
+              <dd class="mt-1 font-medium">{details.location}</dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Level</dt>
+              <dd class="mt-1 font-medium">{details.level}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="grid gap-4">
+          <img
+            src={heroImages.title.src}
+            alt={heroImages.title.alt}
+            loading="eager"
+            class="w-full rounded-xl border bg-background object-cover shadow-sm"
+          />
+
+          <Card class="h-fit">
+            <CardHeader>
+              <CardTitle>What you’ll build</CardTitle>
+              <CardDescription>Concrete output, not just theory.</CardDescription>
+            </CardHeader>
+          <CardContent>
+            <ul class="space-y-3 text-sm">
+              <li class="flex gap-2">
+                <span
+                  class="mt-0.5 inline-flex size-5 items-center justify-center rounded-full border text-xs"
+                >
+                  ✓
+                </span>
+                <span>A fully functional RAG chatbot in MySQL HeatWave GenAI</span>
+              </li>
+              <li class="flex gap-2">
+                <span
+                  class="mt-0.5 inline-flex size-5 items-center justify-center rounded-full border text-xs"
+                >
+                  ✓
+                </span>
+                <span>Natural language to SQL + document Q&amp;A</span>
+              </li>
+              <li class="flex gap-2">
+                <span
+                  class="mt-0.5 inline-flex size-5 items-center justify-center rounded-full border text-xs"
+                >
+                  ✓
+                </span>
+                <span>Multi-model setup via OCI GenAI integration</span>
+              </li>
+            </ul>
+          </CardContent>
+          <CardFooter class="flex flex-col items-stretch gap-2">
+            <Button href="#prereqs" variant="outline" class="w-full">
+              Check prerequisites
+            </Button>
+            <p class="text-xs text-muted-foreground">
+              Bring your laptop. Wi‑Fi required.
+            </p>
+          </CardFooter>
+          </Card>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="overview">
+      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
+        <div class="max-w-2xl">
+          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">Overview</h2>
+          <p class="mt-2 text-muted-foreground">
+            Turn your database into an agent-ready foundation.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-8 md:grid-cols-[320px_1fr] md:items-start">
+          <div class="md:sticky md:top-24">
+            <img
+              src={heroImages.sakila.src}
+              alt={heroImages.sakila.alt}
+              loading="lazy"
+              class="w-full rounded-xl border bg-background object-cover shadow-sm"
+            />
+          </div>
+
+          <div>
+            <div class="max-w-3xl space-y-4 text-sm text-muted-foreground md:text-base">
+              {descriptionParagraphs.map((p) => (
+                <p>{p}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-10 grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>What you’ll build</CardTitle>
+              <CardDescription>A fully functional RAG-powered chatbot.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              <ul class="list-disc space-y-2 pl-5">
+                {chatbotCapabilities.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Key technical highlights</CardTitle>
+              <CardDescription>Enterprise-focused, production-minded.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              <ul class="list-disc space-y-2 pl-5">
+                {highlights.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div class="mt-6 rounded-lg border p-5">
+          <div class="text-sm font-semibold">Models, one parameter away</div>
+          <div class="mt-2 text-sm text-muted-foreground">
+            We’ll explore MySQL HeatWave’s OCI GenAI integration, letting you switch
+            between models (Cohere Command, Llama, GPT‑Oss, Gemini, Grok) with a single
+            parameter change — no complex pipelines, no data movement, no separate
+            vector databases.
+          </div>
+        </div>
+
+        <div class="mt-10 grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Real-world applications</CardTitle>
+              <CardDescription>Where this pattern pays off immediately.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              <ul class="list-disc space-y-2 pl-5">
+                {applications.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Who is this for?</CardTitle>
+              <CardDescription>Perfect fit for these roles.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              Developers, data engineers, and architects seeking practical AI
+              integration without infrastructure complexity.
+              <div class="mt-3">
+                Transform your MySQL database into an intelligent AI platform in just
+                <span class="font-medium text-foreground"> 3 hours</span>.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </section>
+
+    <section id="agenda" class="border-y bg-secondary/60">
+      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
+        <div class="max-w-2xl">
+          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">Agenda</h2>
+          <p class="mt-2 text-muted-foreground">Suggested timings.</p>
+        </div>
+
+        <div class="mt-10 grid gap-8 md:grid-cols-[1fr_320px] md:items-start">
+          <div class="grid gap-3">
+            {
+              agenda.map((item) => (
+                <div class="grid gap-2 rounded-lg border bg-background p-4 md:grid-cols-[120px_1fr] md:gap-6">
+                  <div class="text-xs font-medium text-muted-foreground">
+                    {item.time}
+                  </div>
+                  <div>
+                    <div class="text-sm font-semibold">{item.title}</div>
+                    <div class="mt-1 text-sm text-muted-foreground">
+                      {item.description}
+                    </div>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="md:sticky md:top-24">
+            <img
+              src={heroImages.logo.src}
+              alt={heroImages.logo.alt}
+              loading="lazy"
+              class="w-full rounded-xl border bg-background object-cover shadow-sm"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="prereqs">
+      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
+        <div class="max-w-2xl">
+          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">
+            Prerequisites
+          </h2>
+          <p class="mt-2 text-muted-foreground">A short checklist for attendees.</p>
+        </div>
+
+        <div class="mt-10 grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Required</CardTitle>
+              <CardDescription>Bring these to participate.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              <ul class="list-disc space-y-2 pl-5">
+                <li>Laptop with Wi‑Fi access</li>
+                <li>Modern browser (Chrome/Edge/Firefox)</li>
+                <li>Terminal access</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recommended</CardTitle>
+              <CardDescription>Makes the lab smoother.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              <ul class="list-disc space-y-2 pl-5">
+                <li>Code editor (VS Code, etc.)</li>
+                <li>Basic SQL knowledge</li>
+                <li>Familiarity with APIs and JSON</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </section>
+
+    <section id="instructors" class="border-y bg-secondary/60">
+      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
+        <div class="max-w-2xl">
+          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">
+            Instructors
+          </h2>
+          <p class="mt-2 text-muted-foreground">Chairs</p>
+        </div>
+
+        <div class="mt-10 grid gap-4 md:grid-cols-2">
+          {chairs.map((chair) => (
+            <Card>
+              <CardHeader>
+                <div class="flex items-start gap-4">
+                  <img
+                    src={chair.photo.src}
+                    alt={chair.photo.alt}
+                    loading="lazy"
+                    class="size-14 rounded-full border object-cover"
+                  />
+                  <div class="min-w-0">
+                    <CardTitle>{chair.name}</CardTitle>
+                    <CardDescription>{chair.country}</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent class="text-sm text-muted-foreground space-y-2">
+                <div>Chair</div>
+                <div class="flex flex-wrap gap-3">
+                  <a
+                    class="text-foreground underline underline-offset-4"
+                    href={chair.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    LinkedIn
+                  </a>
+                  <a
+                    class="text-foreground underline underline-offset-4"
+                    href={`mailto:${chair.email}`}
+                  >
+                    {chair.email}
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="register">
+      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
+        <div class="max-w-2xl">
+          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">
+            Register / Download invite
+          </h2>
+          <p class="mt-2 text-muted-foreground">
+            Official AMLD programme page + calendar invite.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Conference links</CardTitle>
+              <CardDescription>Use the official AMLD resources.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              <p>
+                The programme page contains the session entry and the calendar
+                invite.
+              </p>
+            </CardContent>
+            <CardFooter class="flex flex-wrap gap-2">
+              <Button href={inviteDownload} variant="default">Download invite</Button>
+              <Button href={conferenceSite} variant="outline">AMLD 2026 website</Button>
+              <Button href={invitePage} variant="ghost">Programme page</Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Organizer note</CardTitle>
+              <CardDescription>What to update before publishing.</CardDescription>
+            </CardHeader>
+            <CardContent class="text-sm text-muted-foreground">
+              Update the date/time/location at the top of this page and replace
+              the TBD links with real URLs.
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </section>
+
+    <footer class="border-t">
+      <div
+        class="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-10 text-sm md:flex-row md:items-center md:justify-between"
+      >
+        <div class="text-muted-foreground">
+          MySQL HeatWave GenAI Workshop — {new Date().getFullYear()}
+        </div>
+        <div class="flex flex-wrap gap-5 text-muted-foreground">
+          <a href="#overview" class="hover:text-foreground">Overview</a>
+          <a href="#agenda" class="hover:text-foreground">Agenda</a>
+          <a href="#prereqs" class="hover:text-foreground">Prereqs</a>
+          <a href="#register" class="hover:text-foreground">Register</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+</BaseLayout>

@@ -1,0 +1,43 @@
+BEGIN:VCALENDAR
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VTIMEZONE
+TZID:Europe/Paris
+X-MICROSOFT-CDO-TZID:3
+BEGIN:DAYLIGHT
+DTSTART:20250330T010000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+END:DAYLIGHT
+BEGIN:DAYLIGHT
+DTSTART:20260329T010000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+END:DAYLIGHT
+BEGIN:STANDARD
+DTSTART:20251026T010000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTAMP:20260209T190205Z
+ORGANIZER:mailto:noreply@key4.live
+UID:d51805c6044574e408ba13eca12b94d5
+CREATED;TZID=Europe/Paris:20260209T200205
+DESCRIPTION:This intensive hands-on workshop takes you on a complete journey from cloud fundamentals to building production-ready AI agents powered by MySQL HeatWave GenAI. You'll start with foundational concepts of cloud computing and AI agents, then dive deep into MySQL Studio to explore its capabilities through interactive labs covering SQL, machine learning, GenAI queries, and vector operations. You'll learn to create intelligent agents that seamlessly combine structured database queries with unstructured documents through advanced RAG capabilities.\n\nParticipants will build a fully functional chatbot that can:\n\n- Query database tables using natural language (&quot;Show me top customers from last quarter&quot;)\n- Answer questions from uploaded documents (PDFs, docs, presentations)\n- Combine structured and unstructured data for comprehensive insights\n- Automatically generate and execute SQL from conversational requests\n\nWe'll explore MySQL HeatWave's unique OCI GenAI integration, enabling you to switch between models (Cohere Command, Llama , GPT-Oss, Gemini, Grok) with a single parameter change. No complex pipelines, no data movement, no separate vector databases - everything runs within your MySQL environment.\n\nKey technical highlights:\n\n- Configure multi-model AI access through OCI integration\n- Build RAG pipelines combining database tables with document knowledge\n- Implement natural language to SQL translation for intuitive data access\n- Create context-aware chatbots with citation tracking\n- Deploy production-ready solutions with enterprise security\n\nReal-world applications include customer service automation, business intelligence interfaces, technical documentation assistants, and compliance Q&amp;A systems. \n\nParticipants will leave with a deploy database and LLM, best practices, and templates for immediate implementation in their organizations.\n\nPerfect for developers, data engineers, and architects seeking practical AI integration without infrastructure complexity. Transform your MySQL database into an intelligent AI platform in just 3 hours.
+LAST-MODIFIED;TZID=Europe/Paris:20260209T200205
+LOCATION:Online: https://2026.appliedmldays.org
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:AMLD 2026 / Deploy Enterprise Agents from Your Database in Less Than an Hour: MySQL HeatWave GenAI in Action
+DTSTART;TZID=Europe/Paris:20260212T090000
+DTEND;TZID=Europe/Paris:20260212T123000
+TRANS:OPAQUE
+END:VEVENT
+END:VCALENDAR
