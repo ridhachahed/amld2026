@@ -28,7 +28,8 @@ fi
 
 echo "==> Syncing dist/ to gh-pages"
 rm -rf "$WORKTREE_DIR"/*
-cp -R astro-workshop/dist/* "$WORKTREE_DIR"/
+mkdir -p "$WORKTREE_DIR/amld2026"
+cp -R astro-workshop/dist/* "$WORKTREE_DIR/amld2026/"
 
 echo "==> Committing + pushing"
 cd "$WORKTREE_DIR"
