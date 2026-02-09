@@ -31,15 +31,11 @@ jobs:
           cache: npm
           cache-dependency-path: astro-workshop/package-lock.json
 
-      - run: npm ci --no-audit --no-fund
+      # Use npm install (not npm ci) to avoid hard failing on lockfile drift.
+      # If you want strict reproducible installs, switch back to .
+      - run: npm install --no-audit --no-fund
 
-      - run: pwd
-      - run: ls -la
-      - run: ls -la node_modules/.bin || true
-      - run: ls -la node_modules || true
-
-      # Run local Astro (from node_modules)
-      - run: ./node_modules/.bin/astro build
+      - run: npm run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
