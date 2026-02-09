@@ -35,7 +35,18 @@ jobs:
 
       - name: Install deps
         working-directory: astro-workshop
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
+
+      - name: Debug install output
+        working-directory: astro-workshop
+        run: |
+          set -euxo pipefail
+          ls -la
+          ls -la node_modules/.bin || true
+          test -f node_modules/.bin/astro
+          node -p "require('./node_modules/astro/package.json').version"
+          node -v
+          npm -v
 
       - name: Sanity check astro installed
         working-directory: astro-workshop
@@ -43,7 +54,7 @@ jobs:
 
       - name: Build
         working-directory: astro-workshop
-        run: npm run build
+        run: npx astro build
 
       - uses: actions/upload-pages-artifact@v3
         with:
