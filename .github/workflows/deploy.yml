@@ -51,10 +51,6 @@ jobs:
           node -v
           npm -v
 
-      - name: Sanity check astro installed
-        working-directory: astro-workshop
-        run: npx astro --version
-
       - name: Build
         working-directory: astro-workshop
         run: npm run build
