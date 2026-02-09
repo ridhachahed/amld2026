@@ -27,26 +27,13 @@ jobs:
         with:
           node-version: 20
           # Pin npm: avoids occasional npm CLI regressions in GitHub-hosted runners
-          npm-version: 10.9.2
+          npm-version: 10.8.2
           cache: npm
           cache-dependency-path: astro-workshop/package-lock.json
 
-
       - run: npm ci --no-audit --no-fund
 
-      # If npm itself crashes (e.g. "Exit handler never called!"), dump logs
-      # so we can diagnose the runner-side failure.
-      - if: failure()
-        run: |
-          echo "::group::npm debug logs"
-          ls -la /home/runner/.npm/_logs || true
-          cat /home/runner/.npm/_logs/*-debug-0.log || true
-          echo "::endgroup::"
-
       - run: npm run build
-
-      # Quick sanity check: ensures Astro's local binary exists on PATH
-      - run: npx --no-install astro --version
 
       - uses: actions/upload-pages-artifact@v3
         with:
