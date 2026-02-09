@@ -23,19 +23,20 @@ const conferenceSite = "https://2026.appliedmldays.org/";
 const invitePage =
   "https://2026.appliedmldays.org/programme-live-1?coday=2026-02-12&embed=&programType=calendar_v2&dtFormat=d/m";
 
-const inviteDownload = "/invite/workshop-invite.ics";
+const base = import.meta.env.BASE_URL;
+const inviteDownload = `${base}invite/workshop-invite.ics`;
 
 const heroImages = {
   title: {
-    src: "/assets/amld-workshop-title.png",
+    src: `${base}assets/amld-workshop-title.png`,
     alt: "Workshop title graphic",
   },
   logo: {
-    src: "/assets/amld2026.png",
+    src: `${base}assets/amld2026.png`,
     alt: "AMLD 2026 logo",
   },
   sakila: {
-    src: "/assets/sakila-amld.png",
+    src: `${base}assets/sakila-amld.png`,
     alt: "Sakila / AMLD workshop graphic",
   },
 };
@@ -67,7 +68,7 @@ const chairs = [
     linkedin: "https://www.linkedin.com/in/ridha-chahed/",
     email: "ridha.chahed@oracle.com",
     photo: {
-      src: "/instructors/ridha-chahed.png",
+      src: `${base}instructors/ridha-chahed.png`,
       alt: "Portrait of Ridha Chahed",
     },
   },
@@ -77,7 +78,7 @@ const chairs = [
     linkedin: "https://www.linkedin.com/in/milosvasic/",
     email: "milos.vasic@oracle.com",
     photo: {
-      src: "/instructors/milos-vasic.png",
+      src: `${base}instructors/milos-vasic.png`,
       alt: "Portrait of Milos Vasic",
     },
   },
