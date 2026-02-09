@@ -26,15 +26,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          # Pin npm: avoids occasional npm CLI regressions in GitHub-hosted runners
-          npm-version: 10.8.2
-          cache: npm
-          cache-dependency-path: astro-workshop/package-lock.json
 
-      # Use npm install (not npm ci) to avoid hard failing on lockfile drift.
-      # If you want strict reproducible installs, switch back to .
       - run: npm install --no-audit --no-fund
-
       - run: npm run build
 
       - uses: actions/upload-pages-artifact@v3
