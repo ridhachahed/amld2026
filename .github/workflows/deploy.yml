@@ -17,19 +17,24 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: astro-workshop
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-            node-version: 20
+          node-version: 20
 
-      - run: node -v && npm -v
-      - run: npm ci --no-audit --no-fund
-      - run: npm run build
+      - name: Install deps
+        working-directory: astro-workshop
+        run: npm ci --no-audit --no-fund
+
+      - name: Sanity check astro installed
+        working-directory: astro-workshop
+        run: npx astro --version
+
+      - name: Build
+        working-directory: astro-workshop
+        run: npm run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -44,4 +49,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
