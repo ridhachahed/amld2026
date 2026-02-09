@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euxo pipefail
           npm ls astro || true
-          ls -la node_modules | head
+          ls -la node_modules | sed -n '1,15p'
           find node_modules -maxdepth 3 -type f -name astro -o -path "*/.bin/*" | head -n 50
           node -v
           npm -v
