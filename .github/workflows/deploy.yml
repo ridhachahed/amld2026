@@ -20,6 +20,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug workspace
+        run: |
+          set -euxo pipefail
+          pwd
+          ls -la
+          ls -la astro-workshop
+          cat astro-workshop/package.json
+          test -f astro-workshop/package-lock.json
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
