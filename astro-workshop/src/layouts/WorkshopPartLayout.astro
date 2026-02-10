@@ -1,0 +1,70 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import WorkshopNav from "@/components/WorkshopNav.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  partLabel: string;
+  heading: string;
+  lead: string;
+  active: "introduction" | "mysql" | "rag";
+  nextHref?: string;
+  nextLabel?: string;
+  accent?: "orange" | "teal";
+}
+
+const {
+  title,
+  description = title,
+  partLabel,
+  heading,
+  lead,
+  active,
+  nextHref,
+  nextLabel,
+  accent = "orange",
+} = Astro.props;
+
+const baseUrl = import.meta.env.BASE_URL;
+
+const accentColor = accent === "teal" ? "var(--teal)" : "var(--accent)";
+const accentSoft =
+  accent === "teal" ? "var(--teal-soft)" : "var(--accent-soft)";
+
+void active;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="intro-page">
+    <WorkshopNav
+      logoSrc={`${baseUrl}assets/amld2026.png`}
+      logoAlt="AMLD 2026 logo"
+      homeHref={`${baseUrl}`}
+    />
+
+    <header class="hero">
+      <span class="badge" style={`color:${accentColor};background:${accentSoft};`}>
+        {partLabel}
+      </span>
+      <h1 style={`background:linear-gradient(135deg,var(--text) 40%,${accentColor});-webkit-background-clip:text;-webkit-text-fill-color:transparent;`} set:html={heading} />
+      <p>{lead}</p>
+    </header>
+
+    <main class="content">
+      <slot />
+
+      <nav class="footer-nav">
+        <a href={`${baseUrl}`}>← Back to workshop home</a>
+
+        {
+          nextHref && nextLabel ? (
+            <a href={nextHref}>Next: {nextLabel} →</a>
+          ) : (
+            <span />
+          )
+        }
+      </nav>
+    </main>
+  </div>
+</BaseLayout>

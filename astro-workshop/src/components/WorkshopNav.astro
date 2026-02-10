@@ -1,0 +1,70 @@
+---
+import Button from "@/components/bearnie/button/Button.astro";
+
+interface Props {
+  logoSrc: string;
+  logoAlt: string;
+  inviteDownload?: string;
+  homeHref?: string;
+}
+
+const {
+  logoSrc,
+  logoAlt,
+  inviteDownload,
+  homeHref = "#top",
+} = Astro.props;
+
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<header class="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
+  <div class="relative mx-auto flex w-full max-w-5xl items-center gap-4 px-4 py-3">
+    <a href={homeHref} class="flex items-center gap-2">
+      <img
+        src={logoSrc}
+        alt={logoAlt}
+        loading="eager"
+        class="size-9 rounded-full border object-cover bg-background"
+      />
+      <span class="text-sm font-semibold tracking-tight">MySQL HeatWave GenAI</span>
+    </a>
+
+    <nav class="absolute left-1/2 hidden -translate-x-1/2 items-center justify-center gap-6 text-sm text-muted-foreground lg:flex">
+      <a href={homeHref} class="hover:text-info">Home</a>
+      <a href={`${baseUrl}parts/introduction/`} class="hover:text-warning">
+        OCI Cloud
+      </a>
+      <a href={`${baseUrl}parts/mysql-studio-tour/`} class="hover:text-success">
+        MySQL Studio
+      </a>
+      <a href={`${baseUrl}parts/rag-agent/`} class="hover:text-destructive">
+        RAG Agent
+      </a>
+    </nav>
+
+    <div class="ml-auto flex items-center gap-2">
+      <button
+        type="button"
+        class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background/70 px-3 text-sm font-medium text-muted-foreground backdrop-blur transition-colors hover:bg-accent hover:text-accent-foreground"
+        onclick="window.__toggleTheme?.()"
+        aria-label="Toggle dark mode"
+        title="Toggle dark mode"
+      >
+        Dark
+      </button>
+      {
+        inviteDownload ? (
+          <Button
+            href={inviteDownload}
+            variant="outline"
+            size="sm"
+            class="bg-background/70 backdrop-blur"
+          >
+            Download invite
+          </Button>
+        ) : null
+      }
+    </div>
+  </div>
+</header>

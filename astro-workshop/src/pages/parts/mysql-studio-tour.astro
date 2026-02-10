@@ -1,67 +1,344 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
-import Button from "@/components/bearnie/button/Button.astro";
-import Card from "@/components/bearnie/card/Card.astro";
-import CardContent from "@/components/bearnie/card/CardContent.astro";
-import CardDescription from "@/components/bearnie/card/CardDescription.astro";
-import CardHeader from "@/components/bearnie/card/CardHeader.astro";
-import CardTitle from "@/components/bearnie/card/CardTitle.astro";
+import WorkshopPartLayout from "@/layouts/WorkshopPartLayout.astro";
 
-const title = "Part 2 — Hands-on MySQL Studio tour";
+const title = "Part 2 — Hands-on MySQL Studio Tour";
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title={title} description="Workshop part 2: Hands-on MySQL Studio tour.">
-  <main>
-    <header class="border-b">
-      <div class="mx-auto w-full max-w-5xl px-4 py-10">
-        <p class="text-sm text-muted-foreground">Workshop content</p>
-        <h1 class="mt-2 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-          Hands-on MySQL Studio tour
-        </h1>
-        <p class="mt-3 max-w-2xl text-pretty text-muted-foreground">
-          Guided tour through the MySQL Studio experience: SQL, vector operations, ML/GenAI queries,
-          and the workflow you’ll follow during the exercises.
-        </p>
+<WorkshopPartLayout
+  title={title}
+  description={title}
+  partLabel="Part 2 of 3"
+  heading="Hands-on MySQL Studio Tour"
+  lead="Guided tour through the MySQL Studio experience — SQL, vector operations, ML/GenAI queries, and the workflow you'll follow during the exercises."
+  active="mysql"
+  accent="teal"
+  nextHref={`${baseUrl}parts/rag-agent/`}
+  nextLabel="Build RAG Agent"
+>
+      <!-- ====== OVERVIEW ====== -->
+        <section class="section">
+          <div class="section-label">Overview</div>
+          <h2>What You'll Do</h2>
+          <p>In this section you'll get hands-on with MySQL Studio. You'll navigate the three modalities — SQL Editor, AI Chat, and Notebooks — run queries against a live HeatWave cluster, perform vector similarity searches, and explore GenAI-powered workflows. By the end, you'll be fully comfortable with the interface and ready to build your RAG agent in Part 3.</p>
 
-        <div class="mt-6 flex flex-wrap gap-3">
-          <Button href={`${import.meta.env.BASE_URL}parts/introduction/`} variant="outline">
-            Back: Introduction
-          </Button>
-          <Button href={`${import.meta.env.BASE_URL}parts/rag-agent/`} variant="default">
-            Next: Build the RAG Agent
-          </Button>
-        </div>
-      </div>
-    </header>
+          <div class="info-grid">
+            <div class="info-card">
+              <div class="icon">🔍</div>
+              <h3>Run SQL &amp; Inspect Schema</h3>
+              <p>Browse database objects, write and execute SQL, inspect results as tables or charts, and use Explain Plan to understand query execution.</p>
+            </div>
+            <div class="info-card">
+              <div class="icon">📐</div>
+              <h3>Vector Operations</h3>
+              <p>Generate embeddings, create a vector store, and run similarity searches using HeatWave GenAI's built-in vector processing.</p>
+            </div>
+            <div class="info-card">
+              <div class="icon">🤖</div>
+              <h3>GenAI Queries</h3>
+              <p>Use ML_GENERATE for content generation, ML_RAG for retrieval-augmented answers, and NL2SQL for natural language queries.</p>
+            </div>
+          </div>
+        </section>
 
-    <section class="mx-auto w-full max-w-5xl px-4 py-14">
-      <div class="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Focus areas</CardTitle>
-            <CardDescription>What you’ll do in Studio.</CardDescription>
-          </CardHeader>
-          <CardContent class="text-sm text-muted-foreground">
-            <ul class="list-disc space-y-2 pl-5">
-              <li>Run SQL and inspect schema/data quickly</li>
-              <li>Try vector operations and similarity search</li>
-              <li>Explore GenAI-powered queries and workflows</li>
-            </ul>
-          </CardContent>
-        </Card>
+        <!-- ====== STUDIO UI LAYOUT ====== -->
+        <section class="section">
+          <div class="section-label">Interface</div>
+          <h2>MySQL Studio: UI Layout</h2>
+          <p>When you open MySQL Studio in the OCI console, you'll see a workspace organized around your current project. Here's the high-level layout of the interface components:</p>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Outcome</CardTitle>
-            <CardDescription>Ready for the build phase.</CardDescription>
-          </CardHeader>
-          <CardContent class="text-sm text-muted-foreground">
-            You’ll be comfortable navigating the UI and running the key operations you’ll need
-            when building your agent.
-          </CardContent>
-        </Card>
-      </div>
-    </section>
-  </main>
-</BaseLayout>
+          <div class="diagram-card">
+            <div class="caption">Fig 5 — MySQL Studio Interface Layout</div>
+            <svg viewBox="0 0 840 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;">
+              <!-- Main frame -->
+              <rect x="20" y="20" width="800" height="360" rx="10" fill="none" stroke="var(--border)" stroke-width="2"/>
 
+              <!-- Top bar -->
+              <rect x="20" y="20" width="800" height="40" rx="10" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+              <rect x="20" y="50" width="800" height="10" fill="var(--surface)"/>
+              <circle cx="45" cy="40" r="5" fill="#ef4444"/>
+              <circle cx="65" cy="40" r="5" fill="#eab308"/>
+              <circle cx="85" cy="40" r="5" fill="#22c55e"/>
+              <text x="420" y="45" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="600">MySQL Studio — Project: AMLD2026 Workshop</text>
+
+              <!-- Left sidebar -->
+              <rect x="20" y="60" width="180" height="320" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1"/>
+              <text x="35" y="85" fill="var(--text-muted)" font-size="9" font-weight="600" letter-spacing="1" text-transform="uppercase" style="text-transform:uppercase">SCHEMA BROWSER</text>
+
+              <rect x="35" y="95" width="150" height="26" rx="4" fill="rgba(20,184,166,0.06)" stroke="rgba(20,184,166,0.2)" stroke-width="1"/>
+              <text x="48" y="113" fill="var(--accent)" font-size="10">📁 amld_workshop</text>
+
+              <text x="55" y="138" fill="var(--text-muted)" font-size="9.5">📋 documents</text>
+              <text x="55" y="156" fill="var(--text-muted)" font-size="9.5">📋 embeddings</text>
+              <text x="55" y="174" fill="var(--text-muted)" font-size="9.5">📋 products</text>
+              <text x="55" y="192" fill="var(--text-muted)" font-size="9.5">📋 vector_store</text>
+
+              <text x="35" y="225" fill="var(--text-muted)" font-size="9" font-weight="600" letter-spacing="1" style="text-transform:uppercase">PROJECT FILES</text>
+              <text x="48" y="245" fill="var(--text-muted)" font-size="9.5">📄 setup.sql</text>
+              <text x="48" y="263" fill="var(--text-muted)" font-size="9.5">📄 vector-demo.sql</text>
+              <text x="48" y="281" fill="var(--text-muted)" font-size="9.5">📓 rag-notebook.ipynb</text>
+              <text x="48" y="299" fill="var(--text-muted)" font-size="9.5">💬 chat-session-1</text>
+
+              <!-- Main area: SQL Editor tab -->
+              <rect x="200" y="60" width="620" height="40" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+              <rect x="205" y="65" width="90" height="30" rx="5" fill="rgba(20,184,166,0.08)" stroke="var(--accent)" stroke-width="1"/>
+              <text x="250" y="84" text-anchor="middle" fill="var(--accent)" font-size="10" font-weight="600">SQL Editor</text>
+              <rect x="300" y="65" width="70" height="30" rx="5" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1"/>
+              <text x="335" y="84" text-anchor="middle" fill="var(--text-muted)" font-size="10">AI Chat</text>
+              <rect x="375" y="65" width="80" height="30" rx="5" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1"/>
+              <text x="415" y="84" text-anchor="middle" fill="var(--text-muted)" font-size="10">Notebook</text>
+
+              <!-- Code area -->
+              <rect x="200" y="100" width="620" height="150" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1"/>
+              <text x="220" y="125" fill="#4b5563" font-family="JetBrains Mono, monospace" font-size="10">-- Vector similarity search</text>
+              <text x="220" y="145" fill="var(--purple)" font-family="JetBrains Mono, monospace" font-size="10">SELECT</text>
+              <text x="260" y="145" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">doc_name, chunk_text,</text>
+              <text x="220" y="163" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">  DISTANCE(embedding, query_vec, </text>
+              <text x="500" y="163" fill="var(--green)" font-family="JetBrains Mono, monospace" font-size="10">'COSINE'</text>
+              <text x="555" y="163" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">) </text>
+              <text x="563" y="163" fill="var(--purple)" font-family="JetBrains Mono, monospace" font-size="10">AS</text>
+              <text x="583" y="163" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10"> dist</text>
+              <text x="220" y="181" fill="var(--purple)" font-family="JetBrains Mono, monospace" font-size="10">FROM</text>
+              <text x="252" y="181" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">vector_store</text>
+              <text x="220" y="199" fill="var(--purple)" font-family="JetBrains Mono, monospace" font-size="10">ORDER BY</text>
+              <text x="290" y="199" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">dist </text>
+              <text x="313" y="199" fill="var(--purple)" font-family="JetBrains Mono, monospace" font-size="10">LIMIT</text>
+              <text x="352" y="199" fill="var(--orange)" font-family="JetBrains Mono, monospace" font-size="10">5</text>
+              <text x="360" y="199" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">;</text>
+
+              <!-- Run button -->
+              <rect x="745" y="110" width="55" height="26" rx="5" fill="var(--accent)" stroke="none"/>
+              <text x="773" y="128" text-anchor="middle" fill="white" font-size="10" font-weight="600">▶ Run</text>
+
+              <!-- Results area -->
+              <rect x="200" y="250" width="620" height="130" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+              <text x="215" y="270" fill="var(--text-muted)" font-size="9" font-weight="600" letter-spacing="1">RESULTS — 5 ROWS · 0.12s</text>
+
+              <!-- Table header -->
+              <rect x="210" y="280" width="600" height="22" rx="3" fill="var(--surface-2)"/>
+              <text x="225" y="295" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="9">doc_name</text>
+              <text x="400" y="295" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="9">chunk_text</text>
+              <text x="700" y="295" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="9">dist</text>
+
+              <!-- Table rows -->
+              <text x="225" y="318" fill="var(--text)" font-size="9.5">report-q3.pdf</text>
+              <text x="400" y="318" fill="var(--text-muted)" font-size="9.5">Revenue grew 23% year-over-year...</text>
+              <text x="700" y="318" fill="var(--accent)" font-size="9.5">0.142</text>
+
+              <text x="225" y="338" fill="var(--text)" font-size="9.5">strategy.docx</text>
+              <text x="400" y="338" fill="var(--text-muted)" font-size="9.5">Market expansion in APAC region...</text>
+              <text x="700" y="338" fill="var(--accent)" font-size="9.5">0.187</text>
+
+              <text x="225" y="358" fill="var(--text)" font-size="9.5">forecast.html</text>
+              <text x="400" y="358" fill="var(--text-muted)" font-size="9.5">Projected growth targets for FY26...</text>
+              <text x="700" y="358" fill="var(--accent)" font-size="9.5">0.203</text>
+            </svg>
+          </div>
+        </section>
+
+        <!-- ====== EXERCISE 1: SQL ====== -->
+        <section class="section">
+          <div class="section-label">Exercise 1</div>
+          <h2>Run SQL &amp; Inspect Schema</h2>
+          <p>Let's start with the basics: connecting to the database, browsing the schema, and running queries.</p>
+
+          <div class="step-grid">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h3>Connect to your DB System</h3>
+              <p>Open MySQL Studio from the OCI Console. Studio automatically connects to your target MySQL DB System. You'll see the schema browser populated with databases and tables on the left panel.</p>
+            </div>
+
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h3>Explore the sample database</h3>
+              <p>Browse the <code>amld_workshop</code> schema. Click on tables to view their structure, columns, indexes, and row counts. This is your sample dataset for the workshop exercises.</p>
+              <div class="code-block"><span class="comment">-- Inspect table structure</span>
+      <span class="kw">DESCRIBE</span> amld_workshop.products;
+
+      <span class="comment">-- Quick data peek</span>
+      <span class="kw">SELECT</span> * <span class="kw">FROM</span> amld_workshop.products <span class="kw">LIMIT</span> <span class="num">10</span>;</div>
+            </div>
+
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h3>Run an analytical query</h3>
+              <p>Run a query and observe how HeatWave automatically offloads it to the in-memory cluster. Use the Explain Plan button to confirm offloading.</p>
+              <div class="code-block"><span class="comment">-- Analytics on HeatWave — check Explain Plan for RAPID engine</span>
+      <span class="kw">SELECT</span> category, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> cnt, <span class="fn">AVG</span>(price) <span class="kw">AS</span> avg_price
+      <span class="kw">FROM</span> amld_workshop.products
+      <span class="kw">GROUP BY</span> category
+      <span class="kw">ORDER BY</span> avg_price <span class="kw">DESC</span>;</div>
+            </div>
+          </div>
+
+          <div class="callout">
+            <p><strong>Tip:</strong> In the SQL Editor, click the <em>Explain Plan</em> button next to Run. If the query is offloaded to HeatWave, you'll see the <code>RAPID</code> engine in the execution plan rather than <code>InnoDB</code>. This confirms the query uses the in-memory columnar engine.</p>
+          </div>
+        </section>
+
+        <!-- ====== EXERCISE 2: VECTORS ====== -->
+        <section class="section">
+          <div class="section-label">Exercise 2</div>
+          <h2>Vector Operations &amp; Similarity Search</h2>
+          <p>HeatWave GenAI includes a built-in vector store with automatic embedding generation, HNSW indexing, and hybrid search (semantic + keyword). Let's explore these capabilities step by step.</p>
+
+          <div class="diagram-card">
+            <div class="caption">Fig 6 — Vector Operations Flow</div>
+            <svg viewBox="0 0 840 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;">
+              <defs>
+                <marker id="ah5" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                  <polygon points="0 0, 8 3, 0 6" fill="#14b8a6"/>
+                </marker>
+              </defs>
+
+              <rect x="20" y="60" width="140" height="80" class="svg-box" rx="8"/>
+              <text x="90" y="90" class="svg-label" text-anchor="middle">Raw Text</text>
+              <text x="90" y="108" class="svg-sublabel" text-anchor="middle">"AI revolution in</text>
+              <text x="90" y="121" class="svg-sublabel" text-anchor="middle">healthcare..."</text>
+
+              <line x1="160" y1="100" x2="200" y2="100" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ah5)"/>
+
+              <rect x="200" y="50" width="150" height="100" class="svg-box-accent" rx="8"/>
+              <text x="275" y="80" class="svg-label" text-anchor="middle" fill="var(--accent)">ML_EMBED_ROW</text>
+              <text x="275" y="100" class="svg-sublabel" text-anchor="middle">multilingual-e5-small</text>
+              <text x="275" y="118" class="svg-sublabel" text-anchor="middle">→ 384-dim VECTOR</text>
+              <text x="275" y="136" class="svg-sublabel" text-anchor="middle">[0.023, -0.118, ...]</text>
+
+              <line x1="350" y1="100" x2="400" y2="100" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ah5)"/>
+
+              <rect x="400" y="50" width="140" height="100" class="svg-box-blue" rx="8"/>
+              <text x="470" y="82" class="svg-label" text-anchor="middle" fill="var(--blue)">VECTOR</text>
+              <text x="470" y="100" class="svg-label" text-anchor="middle" fill="var(--blue)">Column</text>
+              <text x="470" y="120" class="svg-sublabel" text-anchor="middle">MySQL VECTOR type</text>
+              <text x="470" y="136" class="svg-sublabel" text-anchor="middle">HNSW auto-index</text>
+
+              <line x1="540" y1="100" x2="590" y2="100" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ah5)"/>
+
+        <rect x="590" y="50" width="140" height="100" rx="8" fill="rgba(34,197,94,0.08)" stroke="var(--green)" stroke-width="1.5"/>
+        <text x="660" y="80" class="svg-label" text-anchor="middle" fill="var(--green)">DISTANCE()</text>
+        <text x="660" y="100" class="svg-sublabel" text-anchor="middle" fill="var(--text-muted)">Cosine / L2 / Dot</text>
+        <text x="660" y="118" class="svg-sublabel" text-anchor="middle" fill="var(--text-muted)">Scale-out across</text>
+        <text x="660" y="136" class="svg-sublabel" text-anchor="middle" fill="var(--text-muted)">HeatWave nodes</text>
+
+              <line x1="730" y1="100" x2="770" y2="100" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ah5)"/>
+
+              <rect x="770" y="65" width="55" height="70" class="svg-box-accent" rx="8"/>
+              <text x="798" y="95" class="svg-label" text-anchor="middle" fill="var(--accent)" font-size="11">Top-K</text>
+              <text x="798" y="115" class="svg-sublabel" text-anchor="middle">Results</text>
+            </svg>
+          </div>
+
+          <h3>Generate embeddings</h3>
+          <p>Use <code>ML_EMBED_ROW()</code> to generate a vector embedding for a single piece of text:</p>
+          <div class="code-block"><span class="comment">-- Generate an embedding vector from text</span>
+      <span class="kw">SET</span> @query_vec = (<span class="kw">SELECT</span> <span class="fn">ML_EMBED_ROW</span>(
+        <span class="str">'What are the benefits of AI in healthcare?'</span>,
+        <span class="str">'multilingual-e5-small'</span>
+      ));</div>
+
+          <h3>Run a similarity search</h3>
+          <p>With the query vector, you can now perform a cosine distance search against documents in the vector store:</p>
+          <div class="code-block"><span class="comment">-- Find the 5 most similar document chunks</span>
+      <span class="kw">SELECT</span> doc_name, chunk_text,
+        <span class="fn">DISTANCE</span>(embedding, @query_vec, <span class="str">'COSINE'</span>) <span class="kw">AS</span> dist
+      <span class="kw">FROM</span> amld_workshop.vector_store
+      <span class="kw">ORDER BY</span> dist
+      <span class="kw">LIMIT</span> <span class="num">5</span>;</div>
+
+          <h3>Hybrid search (semantic + keyword)</h3>
+          <p>As of HeatWave 9.5, you can combine semantic similarity with keyword-based search for higher quality results — particularly useful for queries containing product names, SKUs, or brand names that embedding models may not capture well:</p>
+          <div class="code-block"><span class="comment">-- Hybrid search combines vector similarity with keyword matching</span>
+      <span class="kw">CALL</span> <span class="fn">sys.ML_RAG</span>(
+        <span class="str">'What is the dosage for product SKU-4821?'</span>,
+        @output,
+        <span class="str">'&#123;"search_mode": "hybrid"&#125;'</span>
+      );</div>
+
+          <div class="callout-orange callout">
+            <p><strong>New in HeatWave 9.5:</strong> Hybrid search and automatic HNSW vector index creation for frequently queried vector columns are now available, improving both search quality and performance.</p>
+          </div>
+        </section>
+
+        <!-- ====== EXERCISE 3: GENAI ====== -->
+        <section class="section">
+          <div class="section-label">Exercise 3</div>
+          <h2>GenAI-Powered Queries</h2>
+          <p>Now let's explore the full GenAI capabilities — content generation, RAG-based Q&A, and natural-language-to-SQL.</p>
+
+          <h3>Content generation with ML_GENERATE</h3>
+          <div class="code-block"><span class="comment">-- Generate content using the in-database LLM</span>
+      <span class="kw">CALL</span> <span class="fn">sys.ML_GENERATE</span>(
+        <span class="str">'Summarize the key benefits of MySQL HeatWave for AI applications in 3 bullet points.'</span>,
+        @output
+      );
+      <span class="kw">SELECT</span> @output;</div>
+
+          <h3>RAG query with ML_RAG</h3>
+          <p>This is the core GenAI pattern you'll use in your agent. <code>ML_RAG</code> automatically retrieves relevant context from the vector store and generates an augmented answer:</p>
+          <div class="code-block"><span class="comment">-- RAG: retrieve context from vector store + generate answer</span>
+      <span class="kw">CALL</span> <span class="fn">sys.ML_RAG</span>(
+        <span class="str">'What were the Q3 revenue highlights?'</span>,
+        @output,
+        <span class="kw">NULL</span>
+      );
+      <span class="kw">SELECT</span> JSON_PRETTY(@output) <span class="kw">AS</span> answer;</div>
+
+          <h3>Natural Language to SQL</h3>
+          <p>NL2SQL converts plain English into executable SQL queries, making your database accessible to non-technical users:</p>
+          <div class="code-block"><span class="comment">-- Convert natural language to SQL</span>
+      <span class="kw">CALL</span> <span class="fn">sys.NL_SQL</span>(
+        <span class="str">'Show me the top 5 products by revenue in the electronics category'</span>,
+        @sql_output
+      );
+      <span class="kw">SELECT</span> @sql_output;</div>
+
+          <h3>AI Chat in Studio</h3>
+          <p>Switch to the AI Chat tab in MySQL Studio. Here you can have multi-turn conversations grounded in your vector store data. Select which vector stores to use for RAG context, and the chat will provide answers with citations from your documents.</p>
+        </section>
+
+        <!-- ====== EXERCISE 4: NOTEBOOKS ====== -->
+        <section class="section">
+          <div class="section-label">Exercise 4</div>
+          <h2>Notebooks &amp; Data Exploration</h2>
+          <p>MySQL Studio includes Jupyter-compatible notebooks with Python, SQL, and Ibis DataFrame support. These are perfect for iterative data exploration and building end-to-end ML workflows.</p>
+
+          <div class="code-block"><span class="comment"># Python notebook cell — query and visualize</span>
+      <span class="kw">import</span> mysql.connector
+      <span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+      conn = mysql.connector.<span class="fn">connect</span>(
+          host=<span class="str">"your-db-endpoint"</span>,
+          user=<span class="str">"admin"</span>,
+          password=<span class="str">"***"</span>,
+          database=<span class="str">"amld_workshop"</span>
+      )
+
+      df = pd.<span class="fn">read_sql</span>(<span class="str">"SELECT category, AVG(price) as avg_price FROM products GROUP BY category"</span>, conn)
+      df.<span class="fn">plot</span>(kind=<span class="str">'bar'</span>, x=<span class="str">'category'</span>, y=<span class="str">'avg_price'</span>, title=<span class="str">'Average Price by Category'</span>)</div>
+
+          <div class="callout">
+            <p><strong>Pre-built guides:</strong> MySQL Studio ships with ready-to-run notebook guides covering SQL fundamentals, Ibis DataFrames, AutoML workflows, interactive app building, Lakehouse patterns, RAG workflows, and common ML tasks. Browse these from the project file panel.</p>
+          </div>
+        </section>
+
+        <!-- ====== OUTCOME ====== -->
+        <section class="section">
+          <div class="section-label">Outcome</div>
+          <h2>Ready for the Build Phase</h2>
+          <p>After this tour, you are comfortable with:</p>
+          <ul>
+            <li>Navigating the MySQL Studio interface — SQL Editor, AI Chat, and Notebooks</li>
+            <li>Running SQL queries and verifying HeatWave offloading via Explain Plan</li>
+            <li>Generating vector embeddings with <code>ML_EMBED_ROW()</code></li>
+            <li>Performing similarity search with the <code>DISTANCE()</code> function</li>
+            <li>Using <code>ML_RAG()</code> for retrieval-augmented generation</li>
+            <li>Using <code>ML_GENERATE()</code> for LLM content generation</li>
+            <li>Converting natural language to SQL with <code>NL_SQL()</code></li>
+          </ul>
+          <p>You're now ready to combine all of these building blocks into a working RAG agent with custom tools.</p>
+        </section>
+
+
+
+</WorkshopPartLayout>

@@ -1,6 +1,29 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
 
+:root {
+  --workshop-font-body: "DM Sans", var(--font-sans);
+  --workshop-font-mono: "JetBrains Mono", var(--font-mono);
+  --workshop-font-display: "Fraunces", var(--workshop-font-body);
+}
+
+.workshop-content {
+  font-family: var(--workshop-font-body);
+}
+
+.workshop-content h1,
+.workshop-content h2,
+.workshop-content h3 {
+  font-family: var(--workshop-font-display);
+}
+
+.workshop-content .section-label,
+.workshop-content .diagram-card .caption,
+.workshop-content .tag,
+.workshop-content .code-block {
+  font-family: var(--workshop-font-mono);
+}
+
 @theme {
   /* Typography */
   --font-sans: Inter, sans-serif;
@@ -154,6 +177,189 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+}
+
+/* Workshop part pages: HTML fragments styling */
+.workshop-content {
+  --radius: 12px;
+}
+
+.workshop-content .section,
+.workshop-content .diagram-card,
+.workshop-content .info-card,
+.workshop-content .code-block,
+.workshop-content .callout {
+  color: var(--muted-foreground);
+}
+
+.workshop-content h1,
+.workshop-content h2,
+.workshop-content h3,
+.workshop-content .diagram-card .caption {
+  color: var(--foreground);
+}
+
+.workshop-content .section {
+  margin-bottom: 4rem;
+}
+
+.workshop-content .section-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--info);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+}
+
+.workshop-content .diagram-card {
+  background: color-mix(in oklab, var(--card) 92%, var(--secondary) 8%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+
+.workshop-content .diagram-card .caption {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.workshop-content .info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.2rem;
+  margin: 2rem 0;
+}
+
+.workshop-content .info-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.workshop-content .info-card:hover {
+  border-color: color-mix(in oklab, var(--info) 70%, var(--border) 30%);
+  background: color-mix(in oklab, var(--info) 6%, var(--card) 94%);
+}
+
+.workshop-content .info-card .icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.workshop-content .info-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.workshop-content .info-card p {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.workshop-content .code-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  overflow-x: auto;
+  margin: 1.2rem 0;
+}
+
+.workshop-content .code-block .kw {
+  color: color-mix(in oklab, var(--primary) 80%, black 20%);
+}
+
+.workshop-content .code-block .fn {
+  color: var(--info);
+}
+
+.workshop-content .code-block .str {
+  color: var(--success);
+}
+
+.workshop-content .code-block .comment {
+  color: var(--muted-foreground);
+  opacity: 0.8;
+}
+
+.workshop-content .callout {
+  border-left: 3px solid var(--info);
+  background: color-mix(in oklab, var(--info) 10%, transparent);
+  border-radius: 0 12px 12px 0;
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.workshop-content .callout p {
+  color: var(--foreground);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.workshop-content .callout strong {
+  color: var(--info);
+}
+
+.workshop-content .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.85rem;
+}
+
+.workshop-content .data-table th {
+  text-align: left;
+  padding: 0.7rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+}
+
+.workshop-content .data-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.workshop-content .data-table tr:hover td {
+  color: var(--foreground);
+}
+
+.workshop-content .tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.workshop-content .tag-orange {
+  background: color-mix(in oklab, var(--warning) 20%, transparent);
+  color: var(--warning);
+}
+
+@media (max-width: 700px) {
+  .workshop-content .info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Base styles */
