@@ -1,0 +1,67 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Button from "@/components/bearnie/button/Button.astro";
+import Card from "@/components/bearnie/card/Card.astro";
+import CardContent from "@/components/bearnie/card/CardContent.astro";
+import CardDescription from "@/components/bearnie/card/CardDescription.astro";
+import CardHeader from "@/components/bearnie/card/CardHeader.astro";
+import CardTitle from "@/components/bearnie/card/CardTitle.astro";
+
+const title = "Part 2 — Hands-on MySQL Studio tour";
+---
+
+<BaseLayout title={title} description="Workshop part 2: Hands-on MySQL Studio tour.">
+  <main>
+    <header class="border-b">
+      <div class="mx-auto w-full max-w-5xl px-4 py-10">
+        <p class="text-sm text-muted-foreground">Workshop content</p>
+        <h1 class="mt-2 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
+          Hands-on MySQL Studio tour
+        </h1>
+        <p class="mt-3 max-w-2xl text-pretty text-muted-foreground">
+          Guided tour through the MySQL Studio experience: SQL, vector operations, ML/GenAI queries,
+          and the workflow you’ll follow during the exercises.
+        </p>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <Button href={`${import.meta.env.BASE_URL}parts/introduction/`} variant="outline">
+            Back: Introduction
+          </Button>
+          <Button href={`${import.meta.env.BASE_URL}parts/rag-agent/`} variant="default">
+            Next: Build the RAG Agent
+          </Button>
+        </div>
+      </div>
+    </header>
+
+    <section class="mx-auto w-full max-w-5xl px-4 py-14">
+      <div class="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Focus areas</CardTitle>
+            <CardDescription>What you’ll do in Studio.</CardDescription>
+          </CardHeader>
+          <CardContent class="text-sm text-muted-foreground">
+            <ul class="list-disc space-y-2 pl-5">
+              <li>Run SQL and inspect schema/data quickly</li>
+              <li>Try vector operations and similarity search</li>
+              <li>Explore GenAI-powered queries and workflows</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Outcome</CardTitle>
+            <CardDescription>Ready for the build phase.</CardDescription>
+          </CardHeader>
+          <CardContent class="text-sm text-muted-foreground">
+            You’ll be comfortable navigating the UI and running the key operations you’ll need
+            when building your agent.
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+

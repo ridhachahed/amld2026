@@ -15,11 +15,13 @@ const title =
 const details = {
   date: "12/02/2026",
   time: "09:00–12:30 CET",
-  location: "Garden 3BC (EPFL)",
+  location: "Swiss Tech Convention Center (EPFL)",
+  room: "Garden 3BC",
   level: "Intermediate",
 };
 
 const conferenceSite = "https://2026.appliedmldays.org/";
+const venueMapLink = "https://share.google/YYBZdaCo3jPX4WOtM";
 const invitePage =
   "https://2026.appliedmldays.org/programme-live-1?coday=2026-02-12&embed=&programType=calendar_v2&dtFormat=d/m";
 
@@ -47,41 +49,21 @@ const agenda = [
     time: "09:00–10:00",
     title: "Introduction to OCI Cloud & MySQL AI Studio",
     description: "Foundations: cloud basics, AI agents, and the MySQL Studio workflow.",
+    href: "parts/introduction/",
   },
   {
     time: "10:00–10:30",
     title: "Hands-on MySQL Studio tour",
     description:
       "Explore SQL, ML, GenAI queries, and vector operations in guided labs.",
+    href: "parts/mysql-studio-tour/",
   },
   {
     time: "11:00–12:30",
     title: "Build your own RAG Agent with custom tools",
     description:
       "Create a context-aware chatbot combining structured tables with unstructured docs (RAG).",
-  },
-];
-
-const chairs = [
-  {
-    name: "Ridha Chahed",
-    country: "Switzerland",
-    linkedin: "https://www.linkedin.com/in/ridha-chahed/",
-    email: "ridha.chahed@oracle.com",
-    photo: {
-      src: `${baseUrl}instructors/ridha-chahed.png`,
-      alt: "Portrait of Ridha Chahed",
-    },
-  },
-  {
-    name: "Milos Vasic",
-    country: "Switzerland",
-    linkedin: "https://www.linkedin.com/in/milosvasic/",
-    email: "milos.vasic@oracle.com",
-    photo: {
-      src: `${baseUrl}instructors/milos-vasic.png`,
-      alt: "Portrait of Milos Vasic",
-    },
+    href: "parts/rag-agent/",
   },
 ];
 
@@ -133,17 +115,28 @@ const applications = [
         </a>
 
         <nav class="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-          <a href="#overview" class="hover:text-foreground">Overview</a>
-          <a href="#agenda" class="hover:text-foreground">Agenda</a>
-          <a href="#prereqs" class="hover:text-foreground">Prereqs</a>
-          <a href="#instructors" class="hover:text-foreground">Instructors</a>
+          <a href="#top" class="hover:text-info">Home</a>
+          <a href={`${baseUrl}parts/introduction/`} class="hover:text-warning">
+            OCI Cloud
+          </a>
+          <a href={`${baseUrl}parts/mysql-studio-tour/`} class="hover:text-success">
+            MySQL Studio
+          </a>
+          <a href={`${baseUrl}parts/rag-agent/`} class="hover:text-destructive">
+            RAG Agent
+          </a>
         </nav>
 
-        <div class="flex items-center gap-2">
-          <Button href={inviteDownload} variant="default" size="sm">
-            Download invite
-          </Button>
-        </div>
+          <div class="flex items-center gap-2">
+            <Button
+              href={inviteDownload}
+              variant="outline"
+              size="sm"
+              class="bg-background/70 backdrop-blur"
+            >
+              Download invite
+            </Button>
+          </div>
       </div>
     </header>
 
@@ -183,7 +176,7 @@ const applications = [
             <Button href={conferenceSite} variant="ghost">AMLD 2026 site</Button>
           </div>
 
-          <dl class="mt-10 grid gap-6 border-t pt-6 text-sm md:grid-cols-4">
+          <dl class="mt-10 grid gap-6 border-t pt-6 text-sm md:grid-cols-5">
             <div>
               <dt class="text-muted-foreground">Date</dt>
               <dd class="mt-1 font-medium">{details.date}</dd>
@@ -194,7 +187,21 @@ const applications = [
             </div>
             <div>
               <dt class="text-muted-foreground">Location</dt>
-              <dd class="mt-1 font-medium">{details.location}</dd>
+              <dd class="mt-1 font-medium">
+                {details.location}
+                <a
+                  class="ml-2 text-foreground underline underline-offset-4"
+                  href={venueMapLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Map
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Room</dt>
+              <dd class="mt-1 font-medium">{details.room}</dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Level</dt>
@@ -245,9 +252,6 @@ const applications = [
             </ul>
           </CardContent>
           <CardFooter class="flex flex-col items-stretch gap-2">
-            <Button href="#prereqs" variant="outline" class="w-full">
-              Check prerequisites
-            </Button>
             <p class="text-xs text-muted-foreground">
               Bring your laptop. Wi‑Fi required.
             </p>
@@ -370,7 +374,21 @@ const applications = [
           <div class="grid gap-3">
             {
               agenda.map((item) => (
-                <div class="grid gap-2 rounded-lg border bg-background p-4 md:grid-cols-[120px_1fr] md:gap-6">
+                <a
+                  href={`${baseUrl}${item.href}`}
+                  class:list={{
+                    "grid gap-2 rounded-lg border bg-background p-4 transition-colors md:grid-cols-[120px_1fr] md:gap-6": true,
+                    "hover:bg-warning/20 hover:text-warning": item.title.includes(
+                      "Introduction to OCI",
+                    ),
+                    "hover:bg-success/20 hover:text-success": item.title.includes(
+                      "Hands-on MySQL Studio",
+                    ),
+                    "hover:bg-destructive/20 hover:text-destructive": item.title.includes(
+                      "Build your",
+                    ),
+                  }}
+                >
                   <div class="text-xs font-medium text-muted-foreground">
                     {item.time}
                   </div>
@@ -380,7 +398,7 @@ const applications = [
                       {item.description}
                     </div>
                   </div>
-                </div>
+                </a>
               ))
             }
           </div>
@@ -397,141 +415,6 @@ const applications = [
       </div>
     </section>
 
-    <section id="prereqs">
-      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
-        <div class="max-w-2xl">
-          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">
-            Prerequisites
-          </h2>
-          <p class="mt-2 text-muted-foreground">A short checklist for attendees.</p>
-        </div>
-
-        <div class="mt-10 grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Required</CardTitle>
-              <CardDescription>Bring these to participate.</CardDescription>
-            </CardHeader>
-            <CardContent class="text-sm text-muted-foreground">
-              <ul class="list-disc space-y-2 pl-5">
-                <li>Laptop with Wi‑Fi access</li>
-                <li>Modern browser (Chrome/Edge/Firefox)</li>
-                <li>Terminal access</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recommended</CardTitle>
-              <CardDescription>Makes the lab smoother.</CardDescription>
-            </CardHeader>
-            <CardContent class="text-sm text-muted-foreground">
-              <ul class="list-disc space-y-2 pl-5">
-                <li>Code editor (VS Code, etc.)</li>
-                <li>Basic SQL knowledge</li>
-                <li>Familiarity with APIs and JSON</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </section>
-
-    <section id="instructors" class="border-y bg-secondary/60">
-      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
-        <div class="max-w-2xl">
-          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">
-            Instructors
-          </h2>
-          <p class="mt-2 text-muted-foreground">Chairs</p>
-        </div>
-
-        <div class="mt-10 grid gap-4 md:grid-cols-2">
-          {chairs.map((chair) => (
-            <Card>
-              <CardHeader>
-                <div class="flex items-start gap-4">
-                  <img
-                    src={chair.photo.src}
-                    alt={chair.photo.alt}
-                    loading="lazy"
-                    class="size-14 rounded-full border object-cover"
-                  />
-                  <div class="min-w-0">
-                    <CardTitle>{chair.name}</CardTitle>
-                    <CardDescription>{chair.country}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent class="text-sm text-muted-foreground space-y-2">
-                <div>Chair</div>
-                <div class="flex flex-wrap gap-3">
-                  <a
-                    class="text-foreground underline underline-offset-4"
-                    href={chair.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    LinkedIn
-                  </a>
-                  <a
-                    class="text-foreground underline underline-offset-4"
-                    href={`mailto:${chair.email}`}
-                  >
-                    {chair.email}
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section id="register">
-      <div class="mx-auto w-full max-w-5xl px-4 py-14 md:py-20">
-        <div class="max-w-2xl">
-          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">
-            Register / Download invite
-          </h2>
-          <p class="mt-2 text-muted-foreground">
-            Official AMLD programme page + calendar invite.
-          </p>
-        </div>
-
-        <div class="mt-10 grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Conference links</CardTitle>
-              <CardDescription>Use the official AMLD resources.</CardDescription>
-            </CardHeader>
-            <CardContent class="text-sm text-muted-foreground">
-              <p>
-                The programme page contains the session entry and the calendar
-                invite.
-              </p>
-            </CardContent>
-            <CardFooter class="flex flex-wrap gap-2">
-              <Button href={inviteDownload} variant="default">Download invite</Button>
-              <Button href={conferenceSite} variant="outline">AMLD 2026 website</Button>
-              <Button href={invitePage} variant="ghost">Programme page</Button>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Organizer note</CardTitle>
-              <CardDescription>What to update before publishing.</CardDescription>
-            </CardHeader>
-            <CardContent class="text-sm text-muted-foreground">
-              Update the date/time/location at the top of this page and replace
-              the TBD links with real URLs.
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </section>
 
     <footer class="border-t">
       <div
@@ -543,8 +426,6 @@ const applications = [
         <div class="flex flex-wrap gap-5 text-muted-foreground">
           <a href="#overview" class="hover:text-foreground">Overview</a>
           <a href="#agenda" class="hover:text-foreground">Agenda</a>
-          <a href="#prereqs" class="hover:text-foreground">Prereqs</a>
-          <a href="#register" class="hover:text-foreground">Register</a>
         </div>
       </div>
     </footer>

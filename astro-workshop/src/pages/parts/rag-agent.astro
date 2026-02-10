@@ -1,0 +1,65 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Button from "@/components/bearnie/button/Button.astro";
+import Card from "@/components/bearnie/card/Card.astro";
+import CardContent from "@/components/bearnie/card/CardContent.astro";
+import CardDescription from "@/components/bearnie/card/CardDescription.astro";
+import CardHeader from "@/components/bearnie/card/CardHeader.astro";
+import CardTitle from "@/components/bearnie/card/CardTitle.astro";
+
+const title = "Part 3 — Build your own RAG Agent with custom tools";
+---
+
+<BaseLayout title={title} description="Workshop part 3: Build your own RAG Agent with custom tools.">
+  <main>
+    <header class="border-b">
+      <div class="mx-auto w-full max-w-5xl px-4 py-10">
+        <p class="text-sm text-muted-foreground">Workshop content</p>
+        <h1 class="mt-2 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
+          Build your own RAG Agent with custom tools
+        </h1>
+        <p class="mt-3 max-w-2xl text-pretty text-muted-foreground">
+          The build phase: combine structured MySQL data with unstructured documents (RAG),
+          and wire in custom tools so the agent can take actions.
+        </p>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <Button href={`${import.meta.env.BASE_URL}parts/mysql-studio-tour/`} variant="outline">
+            Back: MySQL Studio tour
+          </Button>
+          <Button href={`${import.meta.env.BASE_URL}` } variant="default">Back to workshop</Button>
+        </div>
+      </div>
+    </header>
+
+    <section class="mx-auto w-full max-w-5xl px-4 py-14">
+      <div class="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>What you’ll build</CardTitle>
+            <CardDescription>End-to-end agent workflow.</CardDescription>
+          </CardHeader>
+          <CardContent class="text-sm text-muted-foreground">
+            <ul class="list-disc space-y-2 pl-5">
+              <li>Ingest docs and generate embeddings</li>
+              <li>Retrieve context (top-k) from a vector index</li>
+              <li>Answer questions with citations + tool calls</li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Outcome</CardTitle>
+            <CardDescription>Something you can demo.</CardDescription>
+          </CardHeader>
+          <CardContent class="text-sm text-muted-foreground">
+            A working RAG chatbot backed by MySQL HeatWave GenAI patterns, ready to extend with
+            your own data and custom tools.
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
