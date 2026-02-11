@@ -336,33 +336,99 @@ LIMIT 5;</pre>
           <h2>GenAI-Powered Queries</h2>
           <p>Now let's explore the full GenAI capabilities — content generation, RAG-based Q&A, and natural-language-to-SQL.</p>
 
-          <h3>Content generation with ML_GENERATE</h3>
-          <div class="code-block"><span class="comment">-- Generate content using the in-database LLM</span>
-      <span class="kw">CALL</span> <span class="fn">sys.ML_GENERATE</span>(
-        <span class="str">'Summarize the key benefits of MySQL HeatWave for AI applications in 3 bullet points.'</span>,
-        @output
-      );
-      <span class="kw">SELECT</span> @output;</div>
+          <div class="section-label" style="margin-top:18px;">Step 1</div>
+          <h3>LLM Explorer</h3>
+          <p>To find the list of available LLMs in our database you can view the supported models as shown below:</p>
+          <pre class="code-block">SELECT * FROM sys.ML_SUPPORTED_LLMS;</pre>
 
+          <details class="callout" style="margin-top:12px;">
+            <summary><strong>Example output (click to expand)</strong></summary>
+            <pre class="code-block" style="margin-top:10px;">+---------------------------+----------------------------------------------+-------------------+---------------------+---------------+
+| provider                  | model_id                                     | availability_date | capabilities        | default_model |
++---------------------------+----------------------------------------------+-------------------+---------------------+---------------+
+| HeatWave                  | llama3.1-8b-instruct-v1                      | 2025-05-20        | ["GENERATION"]      |             0 |
+| HeatWave                  | llama3.2-1b-instruct-v1                      | 2025-05-20        | ["GENERATION"]      |             0 |
+| HeatWave                  | llama3.2-3b-instruct-v1                      | 2025-05-20        | ["GENERATION"]      |             1 |
+| HeatWave                  | mistral-7b-instruct-v3                       | 2025-05-20        | ["GENERATION"]      |             0 |
+| HeatWave                  | all_minilm_l12_v2                            | 2024-07-01        | ["TEXT_EMBEDDINGS"] |             0 |
+| HeatWave                  | multilingual-e5-small                        | 2024-07-24        | ["TEXT_EMBEDDINGS"] |             1 |
+| OCI Generative AI Service | xai.grok-4-fast-non-reasoning                | 2025-09-25        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | xai.grok-4-fast-reasoning                    | 2025-09-25        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | xai.grok-code-fast-1                         | 2025-09-11        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | openai.gpt-oss-120b                          | 2025-08-28        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | openai.gpt-oss-20b                           | 2025-08-28        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | google.gemini-2.5-flash                      | 2025-08-28        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | google.gemini-2.5-pro                        | 2025-08-28        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | google.gemini-2.5-flash-lite                 | 2025-08-28        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | xai.grok-4                                   | 2025-07-22        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | cohere.command-latest                        | 2025-07-02        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | cohere.command-plus-latest                   | 2025-07-02        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | cohere.embed-v4.0                            | 2025-07-01        | ["TEXT_EMBEDDINGS"] |             0 |
+| OCI Generative AI Service | xai.grok-3-fast                              | 2025-05-21        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | xai.grok-3                                   | 2025-05-21        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | xai.grok-3-mini-fast                         | 2025-05-21        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | xai.grok-3-mini                              | 2025-05-21        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | meta.llama-4-maverick-17b-128e-instruct-fp8  | 2025-05-12        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | meta.llama-4-scout-17b-16e-instruct          | 2025-05-12        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | cohere.embed-multilingual-image-v3.0         | 2025-05-12        | ["TEXT_EMBEDDINGS"] |             0 |
+| OCI Generative AI Service | cohere.command-a-03-2025                     | 2025-05-12        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | meta.llama-3.3-70b-instruct                  | 2025-01-15        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | meta.llama-3.2-11b-vision-instruct           | 2024-11-13        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | cohere.command-r-08-2024                     | 2024-11-13        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | meta.llama-3.2-90b-vision-instruct           | 2024-11-13        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | cohere.command-r-plus-08-2024                | 2024-11-01        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | meta.llama-3.1-405b-instruct                 | 2024-09-18        | ["GENERATION"]      |             0 |
+| OCI Generative AI Service | cohere.embed-english-light-v3.0              | 2023-11-30        | ["TEXT_EMBEDDINGS"] |             0 |
+| OCI Generative AI Service | cohere.embed-english-v3.0                    | 2023-11-30        | ["TEXT_EMBEDDINGS"] |             0 |
+| OCI Generative AI Service | cohere.embed-multilingual-light-v3.0         | 2023-11-30        | ["TEXT_EMBEDDINGS"] |             0 |
+| OCI Generative AI Service | cohere.embed-multilingual-v3.0               | 2023-11-30        | ["TEXT_EMBEDDINGS"] |             0 |
+| OCI Generative AI Service | cohere.embed-english-light-v2.0              | 2023-09-08        | ["TEXT_EMBEDDINGS"] |             0 |
+| OCI Generative AI Service | ModelEndpointOCID                            | 2025-04-22        | ["GENERATION"]      |             0 |
++---------------------------+----------------------------------------------+-------------------+---------------------+---------------+</pre>
+          </details>
+
+          <div class="section-label" style="margin-top:18px;">Step 2</div>
+          <h3>Content generation with ML_GENERATE</h3>
+          <pre class="code-block">-- Generate content using the in-database LLM
+SELECT sys.ML_GENERATE(
+  "Summarize the key benefits of MySQL HeatWave for AI applications in 3 bullet points.",
+  JSON_OBJECT(
+    "task", "generation",
+    "model_id", "openai.gpt-oss-20b"
+  )
+);</pre>
+
+          <details class="callout callout-red" style="margin-top:12px;">
+            <summary><strong>Example answer (click to expand)</strong></summary>
+            <pre class="code-block" style="margin-top:10px;">- Blazing-fast, in-database analytics – HeatWave processes terabytes of data in seconds, eliminating costly ETL steps and providing near-real-time insights that can be fed directly into AI models.
+- Integrated, low-latency ML capabilities – Native SQL extensions (e.g., SCRIPT MODEL, MODEL_EVAL) let you train, tune, and serve machine-learning models inside MySQL, removing the need for separate data-crawling, storage, and compute layers.
+- Cost-effective, simplified infrastructure – By keeping data, analytics, and inference in one managed cluster, HeatWave reduces data movement, storage duplication, and operational overhead, cutting both infrastructure and operational expenses for AI workloads.</pre>
+          </details>
+
+          <div class="section-label" style="margin-top:18px;">Step 3</div>
           <h3>RAG query with ML_RAG</h3>
           <p>This is the core GenAI pattern you'll use in your agent. <code>ML_RAG</code> automatically retrieves relevant context from the vector store and generates an augmented answer:</p>
-          <div class="code-block"><span class="comment">-- RAG: retrieve context from vector store + generate answer</span>
-      <span class="kw">CALL</span> <span class="fn">sys.ML_RAG</span>(
-        <span class="str">'What were the Q3 revenue highlights?'</span>,
-        @output,
-        <span class="kw">NULL</span>
-      );
-      <span class="kw">SELECT</span> JSON_PRETTY(@output) <span class="kw">AS</span> answer;</div>
+          <pre class="code-block">-- RAG: retrieve context from vector store + generate answer
+CALL sys.ML_RAG(
+  'Which invoice mentions breakfast being included?',
+  @output,
+  NULL
+);
 
+SELECT JSON_PRETTY(@output) AS answer;</pre>
+
+          <div class="section-label" style="margin-top:18px;">Step 4</div>
           <h3>Natural Language to SQL</h3>
           <p>NL2SQL converts plain English into executable SQL queries, making your database accessible to non-technical users:</p>
-          <div class="code-block"><span class="comment">-- Convert natural language to SQL</span>
-      <span class="kw">CALL</span> <span class="fn">sys.NL_SQL</span>(
-        <span class="str">'Show me the top 5 products by revenue in the electronics category'</span>,
-        @sql_output
-      );
-      <span class="kw">SELECT</span> @sql_output;</div>
+          <pre class="code-block">-- Convert natural language to SQL
+CALL sys.NL_SQL(
+  'Show me the top 5 products by revenue in the electronics category',
+  @sql_output
+);
 
+SELECT @sql_output;</pre>
+
+          <div class="section-label" style="margin-top:18px;">Step 5</div>
           <h3>AI Chat in Studio</h3>
           <p>Switch to the AI Chat tab in MySQL Studio. Here you can have multi-turn conversations grounded in your vector store data. Select which vector stores to use for RAG context, and the chat will provide answers with citations from your documents.</p>
         </section>

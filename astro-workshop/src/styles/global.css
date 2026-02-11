@@ -356,6 +356,15 @@
   color: var(--warning);
 }
 
+.workshop-content details.callout-red {
+  border-left-color: var(--danger);
+  background: color-mix(in oklab, var(--danger) 10%, transparent);
+}
+
+.workshop-content details.callout-red strong {
+  color: var(--danger);
+}
+
 @media (max-width: 700px) {
   .workshop-content .info-grid {
     grid-template-columns: 1fr;
