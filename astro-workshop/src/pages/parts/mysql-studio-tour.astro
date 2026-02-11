@@ -206,26 +206,40 @@ ORDER BY avg_nights DESC;</pre>
             />
           </div>
 
-          <pre class="code-block">-- Example vector store table (adjust dimensions/model as needed)
-DROP TABLE IF EXISTS vector_store;
-CREATE TABLE vector_store (
-  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  doc_name VARCHAR(255) NOT NULL,
-  chunk_text TEXT NOT NULL,
-  embedding VECTOR(384) NOT NULL
-);
+          <p style="margin-top:12px;">Once the vector store creation is finished, select it as context and start asking questions — Studio will retrieve the most relevant chunks from your document and answer using that context.</p>
 
--- Populate embeddings (example pattern)
--- INSERT INTO vector_store (doc_name, chunk_text, embedding)
--- SELECT doc_name, chunk_text, ML_EMBED_ROW(chunk_text, JSON_OBJECT('model', 'multilingual-e5-small'))
--- FROM document_chunks;</pre>
+          <div class="diagram-card" style="margin-top:12px;">
+            <img
+              src={`${baseUrl}assets/vector-store-finish.png`}
+              alt="Vector store finished: select it as context and ask questions"
+              loading="lazy"
+              style="width:100%;height:auto;max-width:840px;display:block;"
+            />
+          </div>
         </section>
 
         <!-- ====== EXERCISE 2: VECTORS ====== -->
         <section class="section">
           <div class="section-label">Exercise 3</div>
           <h2>Vector Operations &amp; Similarity Search</h2>
-          <p>HeatWave GenAI includes a built-in vector store with automatic embedding generation, HNSW indexing, and hybrid search (semantic + keyword). Let's explore these capabilities step by step.</p>
+          <p>
+            In the previous step, you created a vector store from <code>hotel_invoices.pdf</code>. Now we'll continue by doing the same operations directly in SQL:
+            generate a query embedding with <code>ML_EMBED_ROW()</code>, then run a similarity search over the vector store table (<code>hotel_invoices_pdf</code>).
+          </p>
+
+          <details class="callout" style="margin-top:12px;">
+            <summary><strong>Vector store schema (for reference)</strong></summary>
+            <pre class="code-block" style="margin-top:10px;">hotel_invoices_pdf (
+  document_name VARCHAR(1024) NOT NULL,
+  metadata JSON NOT NULL,
+  document_id INT UNSIGNED NOT NULL,
+  segment_number INT UNSIGNED NOT NULL,
+  segment VARCHAR(1024) NOT NULL,
+  segment_embedding VECTOR(384) NOT NULL,
+  segment_metadata JSON NOT NULL,
+  PRIMARY KEY (document_id, segment_number)
+)</pre>
+          </details>
 
           <div class="diagram-card">
             <div class="caption">Fig 6 — Vector Operations Flow</div>
@@ -273,34 +287,46 @@ CREATE TABLE vector_store (
             </svg>
           </div>
 
+          <div class="section-label" style="margin-top:18px;">Step 1</div>
           <h3>Generate embeddings</h3>
-          <p>Use <code>ML_EMBED_ROW()</code> to generate a vector embedding for a single piece of text:</p>
-          <div class="code-block"><span class="comment">-- Generate an embedding vector from text</span>
-      <span class="kw">SET</span> @query_vec = (<span class="kw">SELECT</span> <span class="fn">ML_EMBED_ROW</span>(
-        <span class="str">'What are the benefits of AI in healthcare?'</span>,
-        <span class="str">'multilingual-e5-small'</span>
-      ));</div>
+          <p>Use <code>ML_EMBED_ROW()</code> to turn your natural-language query into a 384-dimension vector (to match the <code>VECTOR(384)</code> column in <code>hotel_invoices_pdf</code>):</p>
+          <pre class="code-block">-- Generate an embedding vector from text
+SELECT sys.ML_EMBED_ROW(
+  "Which invoice mentions breakfast being included?",
+  JSON_OBJECT("model_id", "multilingual-e5-small")
+) INTO @query_vec;</pre>
 
+          <div class="section-label" style="margin-top:18px;">Step 2</div>
           <h3>Run a similarity search</h3>
-          <p>With the query vector, you can now perform a cosine distance search against documents in the vector store:</p>
-          <div class="code-block"><span class="comment">-- Find the 5 most similar document chunks</span>
-      <span class="kw">SELECT</span> doc_name, chunk_text,
-        <span class="fn">DISTANCE</span>(embedding, @query_vec, <span class="str">'COSINE'</span>) <span class="kw">AS</span> dist
-      <span class="kw">FROM</span> vector_store
-      <span class="kw">ORDER BY</span> dist
-      <span class="kw">LIMIT</span> <span class="num">5</span>;</div>
+          <p>With the query vector, do a Top-K nearest-neighbor search using <code>DISTANCE()</code> against <code>hotel_invoices_pdf.segment_embedding</code>:</p>
+          <pre class="code-block">-- Find the 5 most similar invoice segments
+SELECT
+  document_name,
+  document_id,
+  segment_number,
+  segment,
+  DISTANCE(segment_embedding, @query_vec, 'COSINE') AS distance
+FROM hotel_invoices_pdf
+ORDER BY distance
+LIMIT 5;</pre>
 
-          <h3>Hybrid search (semantic + keyword)</h3>
-          <p>As of HeatWave 9.5, you can combine semantic similarity with keyword-based search for higher quality results — particularly useful for queries containing product names, SKUs, or brand names that embedding models may not capture well:</p>
-          <div class="code-block"><span class="comment">-- Hybrid search combines vector similarity with keyword matching</span>
-      <span class="kw">CALL</span> <span class="fn">sys.ML_RAG</span>(
-        <span class="str">'What is the dosage for product SKU-4821?'</span>,
-        @output,
-        <span class="str">'&#123;"search_mode": "hybrid"&#125;'</span>
-      );</div>
+          <div class="section-label" style="margin-top:18px;">Step 3 (Optional)</div>
+          <h3>Optional: filter &amp; inspect metadata</h3>
+          <p>If you ingested multiple documents into the same table, you can filter by <code>document_name</code>. You can also inspect JSON fields stored in <code>metadata</code> and <code>segment_metadata</code>:</p>
+          <pre class="code-block">-- Example: filter to one document and display JSON metadata
+SELECT
+  document_name,
+  segment_number,
+  segment,
+  JSON_PRETTY(segment_metadata) AS segment_metadata,
+  DISTANCE(segment_embedding, @query_vec, 'COSINE') AS distance
+FROM hotel_invoices_pdf
+WHERE document_name = 'hotel_invoices.pdf'
+ORDER BY distance
+LIMIT 5;</pre>
 
           <div class="callout-orange callout">
-            <p><strong>New in HeatWave 9.5:</strong> Hybrid search and automatic HNSW vector index creation for frequently queried vector columns are now available, improving both search quality and performance.</p>
+            <p><strong>Tip:</strong> If your similarity results look “off”, make sure the embedding model you use in <code>ML_EMBED_ROW()</code> matches the one used when the vector store was created (dimension and model name).</p>
           </div>
         </section>
 
