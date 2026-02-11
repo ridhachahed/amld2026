@@ -157,9 +157,73 @@ ORDER BY avg_nights DESC;</pre>
           </div>
         </section>
 
-        <!-- ====== EXERCISE 2: VECTORS ====== -->
+        <!-- ====== EXERCISE 2: INGEST + VECTOR STORE ====== -->
         <section class="section">
           <div class="section-label">Exercise 2</div>
+          <h2>Ingest Your Documents &amp; Create Your Vector Store</h2>
+          <p>Before you can run semantic search, you need to ingest documents, chunk them, generate embeddings, and store them in a vector table.</p>
+
+          <p>HeatWave makes this workflow fast by parallelizing work across the cluster. In practice, document chunks are processed concurrently: multiple worker processes (and multiple HeatWave nodes) can generate embeddings at the same time, and the resulting vectors are written in parallel into the vector store table. This is what lets you scale from a handful of documents to large corpora without changing your application logic.</p>
+
+          <div class="diagram-card" style="margin-top:12px;">
+            <img
+              src={`${baseUrl}assets/vector-store.png`}
+              alt="Vector store creation: chunk documents, generate embeddings, store vectors"
+              loading="lazy"
+              style="width:100%;height:auto;max-width:840px;display:block;"
+            />
+          </div>
+
+          <h3>Workflow overview</h3>
+          <ul>
+            <li><strong>Open Vector Stores:</strong> Let's create a vector store. Switch to the <em>Chat</em> tab and click <em>Vector Stores</em>.</li>
+            <li><strong>Provide a document to ingest:</strong> Use a Pre-Authenticated Request (PAR) link to let Studio fetch your source document from Object Storage.</li>
+            <li><strong>Create the vector store:</strong> Studio ingests the document, chunks it, generates embeddings, and stores everything in your database so you can query it with <code>DISTANCE()</code> and <code>ML_RAG()</code>.</li>
+          </ul>
+
+          <div class="diagram-card" style="margin-top:12px;">
+            <img
+              src={`${baseUrl}assets/chat-vector-store.png`}
+              alt="Switch to the Chat tab and open Vector Stores"
+              loading="lazy"
+              style="width:100%;height:auto;max-width:840px;display:block;"
+            />
+          </div>
+
+          <p style="margin-top:12px;">To load the document to be ingested, use a Pre-Authenticated Request (PAR). (<a href="https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/usingpreauthenticatedrequests.htm" target="_blank" rel="noreferrer" style="color: var(--blue);">Reference docs</a>.)</p>
+          <p>PAR link for this workshop PDF (hotel invoices):</p>
+          <div class="callout" style="background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.25);">
+            <pre class="code-block" style="margin:0;">https://objectstorage.us-chicago-1.oraclecloud.com/p/amCzkNqwKJIQVRpX6LtjKZ0q7Fg2zKbflk66E5idDBOH3S8m06qUsSGEuxG7cjFk/n/mysqlpm/b/amld-workshop/o/hotel_invoices.pdf</pre>
+          </div>
+          <p>This PAR gives access to a PDF document of several hotel invoices. We'll create a vector store from this document and store it in our database.</p>
+
+          <div class="diagram-card" style="margin-top:12px;">
+            <img
+              src={`${baseUrl}assets/vector-store-create.png`}
+              alt="Create a vector store from a PAR-hosted PDF document"
+              loading="lazy"
+              style="width:100%;height:auto;max-width:840px;display:block;"
+            />
+          </div>
+
+          <pre class="code-block">-- Example vector store table (adjust dimensions/model as needed)
+DROP TABLE IF EXISTS vector_store;
+CREATE TABLE vector_store (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  doc_name VARCHAR(255) NOT NULL,
+  chunk_text TEXT NOT NULL,
+  embedding VECTOR(384) NOT NULL
+);
+
+-- Populate embeddings (example pattern)
+-- INSERT INTO vector_store (doc_name, chunk_text, embedding)
+-- SELECT doc_name, chunk_text, ML_EMBED_ROW(chunk_text, JSON_OBJECT('model', 'multilingual-e5-small'))
+-- FROM document_chunks;</pre>
+        </section>
+
+        <!-- ====== EXERCISE 2: VECTORS ====== -->
+        <section class="section">
+          <div class="section-label">Exercise 3</div>
           <h2>Vector Operations &amp; Similarity Search</h2>
           <p>HeatWave GenAI includes a built-in vector store with automatic embedding generation, HNSW indexing, and hybrid search (semantic + keyword). Let's explore these capabilities step by step.</p>
 
@@ -222,7 +286,7 @@ ORDER BY avg_nights DESC;</pre>
           <div class="code-block"><span class="comment">-- Find the 5 most similar document chunks</span>
       <span class="kw">SELECT</span> doc_name, chunk_text,
         <span class="fn">DISTANCE</span>(embedding, @query_vec, <span class="str">'COSINE'</span>) <span class="kw">AS</span> dist
-      <span class="kw">FROM</span> amld_workshop.vector_store
+      <span class="kw">FROM</span> vector_store
       <span class="kw">ORDER BY</span> dist
       <span class="kw">LIMIT</span> <span class="num">5</span>;</div>
 
@@ -242,7 +306,7 @@ ORDER BY avg_nights DESC;</pre>
 
         <!-- ====== EXERCISE 3: GENAI ====== -->
         <section class="section">
-          <div class="section-label">Exercise 3</div>
+          <div class="section-label">Exercise 4</div>
           <h2>GenAI-Powered Queries</h2>
           <p>Now let's explore the full GenAI capabilities — content generation, RAG-based Q&A, and natural-language-to-SQL.</p>
 
