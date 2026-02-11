@@ -408,54 +408,50 @@ SELECT sys.ML_GENERATE(
           <div class="section-label" style="margin-top:18px;">Step 3</div>
           <h3>RAG query with ML_RAG</h3>
           <p>This is the core GenAI pattern you'll use in your agent. <code>ML_RAG</code> automatically retrieves relevant context from the vector store and generates an augmented answer:</p>
+
+          <div class="diagram-card" style="margin-top:12px;">
+            <div class="caption">RAG flow — retrieve, augment, generate</div>
+            <img
+              src={`${baseUrl}assets/rag.png`}
+              alt="Diagram of a RAG flow: retrieve context from a vector store, augment the prompt, and generate an answer"
+              loading="lazy"
+              style="width:100%;height:auto;max-width:840px;display:block;"
+            />
+          </div>
+
           <pre class="code-block">-- RAG: retrieve context from vector store + generate answer
 CALL sys.ML_RAG(
-  'Which invoice mentions breakfast being included?',
+  'Which hotels mentions breakfast being included?',
   @output,
-  NULL
+  JSON_OBJECT(
+    "model_options", JSON_OBJECT("model_id", "openai.gpt-oss-20b"),
+    "n_citations", 10
+  )
 );
 
 SELECT JSON_PRETTY(@output) AS answer;</pre>
 
-          <div class="section-label" style="margin-top:18px;">Step 4</div>
-          <h3>Natural Language to SQL</h3>
-          <p>NL2SQL converts plain English into executable SQL queries, making your database accessible to non-technical users:</p>
-          <pre class="code-block">-- Convert natural language to SQL
-CALL sys.NL_SQL(
-  'Show me the top 5 products by revenue in the electronics category',
-  @sql_output
-);
+          <details class="callout" style="margin-top:12px;">
+            <summary><strong>Example answer (click to expand)</strong></summary>
+            <pre class="code-block" style="margin-top:10px;">Answer:
+Comfort Inn Bern, Hilton Basel Aeschengraben, Marriott Zurich Neumuehlequai, Marriott Zurich Downtown, Best Western Bern, Courtyard by Marriott Zurich Schiffbaustrasse, Hyatt Regency Basel, Radisson Blu Lucerne, Hilton Basel Airport.
 
-SELECT @sql_output;</pre>
+Top citations (segment_number, distance):
+- 14 (0.2095)
+- 0 (0.2150)
+- 2 (0.2157)
+- 18 (0.2159)
+- 8 (0.2175)
+- 12 (0.2210)
+- 15 (0.2234)
+- 4 (0.2255)
+- 6 (0.2280)
+- 16 (0.2285)
 
-          <div class="section-label" style="margin-top:18px;">Step 5</div>
-          <h3>AI Chat in Studio</h3>
-          <p>Switch to the AI Chat tab in MySQL Studio. Here you can have multi-turn conversations grounded in your vector store data. Select which vector stores to use for RAG context, and the chat will provide answers with citations from your documents.</p>
-        </section>
+Vector store: `&lt;username&gt;`.`hotel_invoices_pdf`</pre>
+          </details>
 
-        <!-- ====== EXERCISE 4: NOTEBOOKS ====== -->
-        <section class="section">
-          <div class="section-label">Exercise 4</div>
-          <h2>Notebooks &amp; Data Exploration</h2>
-          <p>MySQL Studio includes Jupyter-compatible notebooks with Python, SQL, and Ibis DataFrame support. These are perfect for iterative data exploration and building end-to-end ML workflows.</p>
-
-          <div class="code-block"><span class="comment"># Python notebook cell — query and visualize</span>
-      <span class="kw">import</span> mysql.connector
-      <span class="kw">import</span> pandas <span class="kw">as</span> pd
-
-      conn = mysql.connector.<span class="fn">connect</span>(
-          host=<span class="str">"your-db-endpoint"</span>,
-          user=<span class="str">"admin"</span>,
-          password=<span class="str">"***"</span>,
-          database=<span class="str">"amld_workshop"</span>
-      )
-
-      df = pd.<span class="fn">read_sql</span>(<span class="str">"SELECT category, AVG(price) as avg_price FROM products GROUP BY category"</span>, conn)
-      df.<span class="fn">plot</span>(kind=<span class="str">'bar'</span>, x=<span class="str">'category'</span>, y=<span class="str">'avg_price'</span>, title=<span class="str">'Average Price by Category'</span>)</div>
-
-          <div class="callout">
-            <p><strong>Pre-built guides:</strong> MySQL Studio ships with ready-to-run notebook guides covering SQL fundamentals, Ibis DataFrames, AutoML workflows, interactive app building, Lakehouse patterns, RAG workflows, and common ML tasks. Browse these from the project file panel.</p>
-          </div>
+          <!-- Steps 4 and 5 removed -->
         </section>
 
         <!-- ====== OUTCOME ====== -->
@@ -464,13 +460,12 @@ SELECT @sql_output;</pre>
           <h2>Ready for the Build Phase</h2>
           <p>After this tour, you are comfortable with:</p>
           <ul>
-            <li>Navigating the MySQL Studio interface — SQL Editor, AI Chat, and Notebooks</li>
+            <li>Navigating the MySQL Studio interface — SQL Editor and AI Chat</li>
             <li>Running SQL queries and verifying HeatWave offloading via Explain Plan</li>
             <li>Generating vector embeddings with <code>ML_EMBED_ROW()</code></li>
             <li>Performing similarity search with the <code>DISTANCE()</code> function</li>
             <li>Using <code>ML_RAG()</code> for retrieval-augmented generation</li>
             <li>Using <code>ML_GENERATE()</code> for LLM content generation</li>
-            <li>Converting natural language to SQL with <code>NL_SQL()</code></li>
           </ul>
           <p>You're now ready to combine all of these building blocks into a working RAG agent with custom tools.</p>
         </section>
