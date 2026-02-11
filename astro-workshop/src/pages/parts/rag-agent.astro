@@ -1,455 +1,496 @@
 ---
 import WorkshopPartLayout from "@/layouts/WorkshopPartLayout.astro";
 
-const title = "Part 3 — Build Your Own RAG Agent with Custom Tools";
+const title = "Part 3 — Build a Hotel Booking Agent with HeatWave GenAI";
 const baseUrl = import.meta.env.BASE_URL;
+
+const exerciseNotebook = `${baseUrl}assets/notebooks/amld-heatwave-genai-lab.ipynb`;
+const solutionNotebook = `${baseUrl}assets/notebooks/amld-heatwave-genai-lab-solution.ipynb`;
 ---
 
 <WorkshopPartLayout
   title={title}
   description={title}
   partLabel="Part 3 of 3"
-  heading="Build Your Own RAG Agent with Custom Tools"
-  lead="Create a context-aware chatbot combining structured tables with unstructured docs (RAG)."
+  heading="Build a Hotel Booking Agent with HeatWave GenAI"
+  lead="From CRUD tools to RAG over invoices — all inside MySQL HeatWave."
   active="rag"
 >
-      <!-- ====== WHAT YOU'LL BUILD ====== -->
-        <section class="section">
-          <div class="section-label">Goal</div>
-          <h2>What You'll Build</h2>
-          <p>In this final section you'll build a working RAG chatbot backed by MySQL HeatWave GenAI. The agent will ingest documents into a vector store, retrieve relevant context using similarity search, generate answers with citations, and call custom tools to take actions against your database. By the end, you'll have something you can demo and extend with your own data.</p>
+  <section class="section">
+    <div class="section-label">Architecture</div>
+    <h2>The loop — think → call a tool → observe → answer</h2>
+    <p>
+      This lab uses a <strong>ReAct agent</strong> powered by HeatWave’s in-database LLM. Instead of hoping the model “knows” your data,
+      we give it tools to fetch it.
+    </p>
 
-          <div class="info-grid">
-            <div class="info-card">
-              <div class="icon">📥</div>
-              <h3>Ingest &amp; Embed</h3>
-              <p>Load documents from Object Storage, chunk them, generate embeddings, and store them in the HeatWave Vector Store.</p>
-            </div>
-            <div class="info-card">
-              <div class="icon">🔎</div>
-              <h3>Retrieve &amp; Generate</h3>
-              <p>Retrieve top-K context from the vector index, augment the prompt, and generate answers with citations using ML_RAG.</p>
-            </div>
-            <div class="info-card">
-              <div class="icon">🔧</div>
-              <h3>Custom Tools</h3>
-              <p>Wire in custom tool functions so the agent can query structured data, run SQL, call APIs, and take actions beyond Q&A.</p>
-            </div>
+    <div class="diagram-card">
+      <div class="caption">Fig 7 — Hotel booking agent (SQL tools + RAG tool)</div>
+
+      <div class="mini-diagram" role="img" aria-label="Agent architecture — user to ReAct agent, which calls SQL tools or a RAG tool backed by HeatWave.">
+        <div class="mini-diagram__row">
+          <div class="mini-diagram__box">User</div>
+        </div>
+
+        <div class="mini-diagram__row">
+          <div class="mini-diagram__arrow">↓</div>
+        </div>
+
+        <div class="mini-diagram__row">
+          <div class="mini-diagram__box mini-diagram__box--agent">
+            LangChain ReAct Agent
+            <span>MyLLM (HeatWave) + tool descriptions</span>
           </div>
-        </section>
+        </div>
 
-        <!-- ====== AGENT ARCHITECTURE ====== -->
-        <section class="section">
-          <div class="section-label">Architecture</div>
-          <h2>RAG Agent Architecture</h2>
-          <p>The agent follows a standard retrieval-augmented generation pattern, enhanced with a tool-calling loop. When a user asks a question, the agent first determines if it needs to call a tool (SQL query, API call) or retrieve context from the vector store, then generates a response with the LLM.</p>
-
-          <div class="diagram-card">
-            <div class="caption">Fig 7 — RAG Agent Architecture with Tool Calling</div>
-            <svg viewBox="0 0 840 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;">
-              <defs>
-                <marker id="ah7" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/></marker>
-                <marker id="ah7o" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f97316"/></marker>
-                <marker id="ah7t" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#14b8a6"/></marker>
-                <marker id="ah7b" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/></marker>
-              </defs>
-
-              <!-- User -->
-              <rect x="340" y="15" width="160" height="55" rx="8" fill="rgba(167,139,250,0.08)" stroke="var(--accent)" stroke-width="1.5"/>
-              <text x="420" y="40" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="600">User</text>
-              <text x="420" y="57" text-anchor="middle" fill="var(--text-muted)" font-size="10">Chat Interface</text>
-
-              <!-- Arrow to Agent -->
-              <line x1="420" y1="70" x2="420" y2="105" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ah7)"/>
-
-              <!-- Agent / Orchestrator -->
-              <rect x="270" y="105" width="300" height="75" rx="10" fill="rgba(249,115,22,0.08)" stroke="var(--orange)" stroke-width="2"/>
-              <text x="420" y="132" text-anchor="middle" fill="var(--orange)" font-size="15" font-weight="700">Agent Orchestrator</text>
-              <text x="420" y="152" text-anchor="middle" fill="var(--text-muted)" font-size="10">Python SDK · Intent Detection · Tool Router</text>
-              <text x="420" y="168" text-anchor="middle" fill="var(--text-muted)" font-size="10">Conversation History Manager</text>
-
-              <!-- Three paths from agent -->
-              <!-- Left: Vector Store / RAG -->
-              <line x1="320" y1="180" x2="130" y2="230" stroke="var(--teal)" stroke-width="1.5" marker-end="url(#ah7t)"/>
-              <rect x="30" y="230" width="200" height="90" rx="8" fill="rgba(20,184,166,0.08)" stroke="var(--teal)" stroke-width="1.5"/>
-              <text x="130" y="258" text-anchor="middle" fill="var(--teal)" font-size="13" font-weight="600">RAG Pipeline</text>
-              <text x="130" y="278" text-anchor="middle" fill="var(--text-muted)" font-size="10">ML_RAG() / ML_GENERATE()</text>
-              <text x="130" y="296" text-anchor="middle" fill="var(--text-muted)" font-size="10">Vector Store ↔ LLM</text>
-              <text x="230" y="228" fill="var(--teal)" font-size="9" font-weight="600">RETRIEVE</text>
-
-              <!-- Center: SQL Tool -->
-              <line x1="420" y1="180" x2="420" y2="230" stroke="var(--blue)" stroke-width="1.5" marker-end="url(#ah7b)"/>
-              <rect x="320" y="230" width="200" height="90" rx="8" fill="rgba(59,130,246,0.08)" stroke="var(--blue)" stroke-width="1.5"/>
-              <text x="420" y="258" text-anchor="middle" fill="var(--blue)" font-size="13" font-weight="600">SQL Tool</text>
-              <text x="420" y="278" text-anchor="middle" fill="var(--text-muted)" font-size="10">NL2SQL / Direct Query</text>
-              <text x="420" y="296" text-anchor="middle" fill="var(--text-muted)" font-size="10">Structured Data Access</text>
-              <text x="520" y="228" fill="var(--blue)" font-size="9" font-weight="600">QUERY</text>
-
-              <!-- Right: Custom Tools -->
-              <line x1="520" y1="180" x2="710" y2="230" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ah7)"/>
-              <rect x="610" y="230" width="200" height="90" rx="8" fill="rgba(167,139,250,0.08)" stroke="var(--accent)" stroke-width="1.5"/>
-              <text x="710" y="258" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="600">Custom Tools</text>
-              <text x="710" y="278" text-anchor="middle" fill="var(--text-muted)" font-size="10">API Calls · Calculations</text>
-              <text x="710" y="296" text-anchor="middle" fill="var(--text-muted)" font-size="10">Business Logic · Actions</text>
-              <text x="610" y="228" fill="var(--accent)" font-size="9" font-weight="600">ACT</text>
-
-              <!-- Below: Data Sources -->
-              <line x1="130" y1="320" x2="130" y2="370" stroke="var(--teal)" stroke-width="1.2" marker-end="url(#ah7t)"/>
-              <rect x="30" y="370" width="200" height="70" rx="8" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/>
-              <text x="130" y="398" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">HeatWave Vector Store</text>
-              <text x="130" y="416" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">PDF · DOCX · HTML · TXT</text>
-              <text x="130" y="430" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">Embeddings + HNSW Index</text>
-
-              <line x1="420" y1="320" x2="420" y2="370" stroke="var(--blue)" stroke-width="1.2" marker-end="url(#ah7b)"/>
-              <rect x="320" y="370" width="200" height="70" rx="8" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/>
-              <text x="420" y="398" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">MySQL Database</text>
-              <text x="420" y="416" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">Transactional Tables</text>
-              <text x="420" y="430" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">Products · Orders · Users</text>
-
-              <line x1="710" y1="320" x2="710" y2="370" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#ah7)"/>
-              <rect x="610" y="370" width="200" height="70" rx="8" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/>
-              <text x="710" y="398" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">External Services</text>
-              <text x="710" y="416" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">REST APIs · Webhooks</text>
-              <text x="710" y="430" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">OCI Object Storage</text>
-
-              <!-- Response path back -->
-              <path d="M 130 370 L 130 470 L 420 470 L 420 500" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="5 3"/>
-              <path d="M 420 370 L 420 470" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="5 3"/>
-              <path d="M 710 370 L 710 470 L 420 470" fill="none" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="5 3"/>
-
-              <rect x="340" y="475" width="160" height="35" rx="6" fill="rgba(249,115,22,0.06)" stroke="var(--border)" stroke-width="1"/>
-              <text x="420" y="498" text-anchor="middle" fill="var(--text-muted)" font-size="10">→ Aggregate → Format → Respond</text>
-            </svg>
+        <div class="mini-diagram__row mini-diagram__row--tools">
+          <div class="mini-diagram__box mini-diagram__box--sql">
+            SQL Tools (CRUD)
+            <span>search / book / cancel / update</span>
           </div>
-        </section>
-
-        <!-- ====== STEP 1: INGEST ====== -->
-        <section class="section">
-          <div class="section-label">Step 1</div>
-          <h2>Ingest Documents &amp; Generate Embeddings</h2>
-          <p>The first step is to populate the vector store. HeatWave's Auto Parallel Load handles the heavy lifting: it discovers documents in OCI Object Storage, chunks them, generates embeddings using the configured model, and stores everything in a queryable vector store table.</p>
-
-          <div class="code-block">
-            <pre><code><span class="comment">-- Load documents from Object Storage into the vector store</span>
-      <span class="comment">-- Auto Parallel Load handles chunking + embedding generation</span>
-      <span class="kw">CALL</span> <span class="fn">sys.heatwave_load</span>(
-        <span class="kw">JSON_ARRAY</span>(<span class="str">'amld_workshop'</span>, <span class="str">'vector_store'</span>),
-        <span class="kw">JSON_OBJECT</span>(
-          <span class="str">'mode'</span>,         <span class="str">'normal'</span>,
-          <span class="str">'policy'</span>,       <span class="str">'enable_auto'</span>,
-          <span class="str">'output'</span>,       <span class="str">'normal'</span>
-        )
-      );</code></pre>
+          <div class="mini-diagram__box mini-diagram__box--db">
+            MySQL HeatWave
+            <span>data + inference + ML_RAG</span>
           </div>
-
-          <div class="callout-teal callout">
-            <p><strong>What happens behind the scenes:</strong> Auto Parallel Load reads files from the OCI Object Storage bucket, splits documents into semantically meaningful chunks, generates vector embeddings for each chunk using the configured model (default: <code>multilingual-e5-small</code>), creates a VECTOR column with automatic HNSW indexing, and loads everything into the HeatWave cluster for fast retrieval.</p>
+          <div class="mini-diagram__box mini-diagram__box--rag">
+            RAG Tool
+            <span>invoice PDFs → citations</span>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <h3>Verify the ingested data</h3>
-          <div class="code-block">
-            <pre><code><span class="comment">-- Check what was loaded</span>
-      <span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">AS</span> total_chunks,
-             <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> doc_name) <span class="kw">AS</span> total_docs
-      <span class="kw">FROM</span> amld_workshop.vector_store;
+    <div class="notebook-downloads" aria-label="Notebook downloads">
+      <a class="notebook-box notebook-box--exercise" href={exerciseNotebook} download>
+        <div class="notebook-box__eyebrow">Notebook</div>
+        <div class="notebook-box__title">Agent exercises</div>
+        <div class="notebook-box__desc">Follow along and implement the missing tool code.</div>
+        <div class="notebook-box__cta">Download →</div>
+      </a>
 
-      <span class="comment">-- Preview chunks from a specific document</span>
-      <span class="kw">SELECT</span> doc_name, segment_id, chunk_text
-      <span class="kw">FROM</span> amld_workshop.vector_store
-      <span class="kw">WHERE</span> doc_name <span class="kw">LIKE</span> <span class="str">'%report%'</span>
-      <span class="kw">LIMIT</span> <span class="num">5</span>;</code></pre>
-          </div>
-        </section>
+      <a class="notebook-box notebook-box--solution" href={solutionNotebook} download>
+        <div class="notebook-box__eyebrow">Notebook</div>
+        <div class="notebook-box__title">Solution (download at the end)</div>
+        <div class="notebook-box__desc">Completed notebook for reference after the lab.</div>
+        <div class="notebook-box__cta">Download →</div>
+      </a>
+    </div>
+  </section>
 
-        <!-- ====== STEP 2: RAG ====== -->
-        <section class="section">
-          <div class="section-label">Step 2</div>
-          <h2>Retrieve Context &amp; Generate Answers</h2>
-          <p>Now that documents are in the vector store, we can build the RAG pipeline. The simplest approach uses the built-in <code>ML_RAG()</code> routine which handles retrieval and generation in a single call. For more control, you can build a custom pipeline.</p>
+  <section class="section">
+    <div class="section-label">Step 1</div>
+    <h2>Connect to MySQL (sanity check)</h2>
+    <p>
+      In MySQL Studio, you already have credentials in the environment. Connect using <code>MYSQL_USER</code> and run a tiny query.
+      If you see <code>(1,)</code>, you’re ready.
+    </p>
 
-          <h3>Option A: Built-in ML_RAG (one-step)</h3>
-          <div class="code-block">
-            <pre><code><span class="comment">-- One-step RAG: retrieve + generate in a single call</span>
-      <span class="kw">CALL</span> <span class="fn">sys.ML_RAG</span>(
-        <span class="str">'What were the key findings from the Q3 analysis?'</span>,
-        @answer,
-        <span class="kw">JSON_OBJECT</span>(
-          <span class="str">'n_citations'</span>, <span class="num">3</span>,
-          <span class="str">'model_id'</span>,    <span class="str">'llama3.2-3b-instruct-v1'</span>,
-          <span class="str">'tables'</span>,      <span class="kw">JSON_ARRAY</span>(<span class="str">'amld_workshop.vector_store'</span>)
-        )
+    <div class="code-block">
+      <pre><code>import os
+import mysql.connector
+
+mydb = mysql.connector.connect(database=os.environ["MYSQL_USER"])
+
+cursor = mydb.cursor()
+cursor.execute("SELECT 1")
+print(cursor.fetchone())</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Step 2</div>
+    <h2>Create an agent (and watch it fail)</h2>
+    <p>
+      Before building real tools, create a minimal agent backed by HeatWave’s in-database LLM. We add a placeholder tool,
+      then ask it to book a hotel.
+    </p>
+
+    <div class="code-block">
+      <pre><code>from mysql.ai.genai import MyLLM
+
+from langchain_classic.agents.initialize import initialize_agent, AgentType
+from langchain_core.tools import Tool
+
+myllm = MyLLM(mydb).bind(model_id="meta.llama-3.3-70b-instruct")
+
+
+dummy_tool = Tool(
+    name="Placeholder",
+    func=lambda x: "No real tools available yet.",
+    description="A placeholder tool that does nothing useful.",
+)
+
+
+agent = initialize_agent(
+    llm=myllm,
+    tools=[dummy_tool],
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+    return_intermediate_steps=True,
+    handle_parsing_errors=True,
+    max_iterations=2,
+    early_stopping_method="generate",
+)
+
+agent.invoke("Book the Hilton Basel for me!")</code></pre>
+    </div>
+
+    <div class="callout">
+      <p><strong>Expected behavior</strong> — it can’t actually book anything. Without tools, the agent has no way to read availability or update bookings.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Step 3</div>
+    <h2>Introspect the <code>hotels</code> table</h2>
+    <p>
+      Tools are just functions. To write good tools, we need to know the schema.
+      In this lab, the agent operates on a <code>hotels</code> table with booking state and optional dates.
+    </p>
+
+    <div class="code-block">
+      <pre><code>import pandas as pd
+
+pd.read_sql("SELECT * FROM hotels LIMIT 10", mydb)</code></pre>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Column</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>Primary key used by tools</td></tr>
+        <tr><td><code>name</code></td><td>Hotel name (e.g. Hilton Basel)</td></tr>
+        <tr><td><code>location</code></td><td>City</td></tr>
+        <tr><td><code>booked</code></td><td><code>1</code> booked, <code>0</code> available</td></tr>
+        <tr><td><code>checkin_date</code> / <code>checkout_date</code></td><td>Reservation dates</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Step 4</div>
+    <h2>Give the agent hands — CRUD tools</h2>
+    <p>
+      Now we create five tools. Each tool has (1) a Python function that runs SQL, and (2) a <code>Tool</code> wrapper with a name and description.
+      The description is part of your “API” — the LLM uses it to decide which tool to call and how to format the input.
+    </p>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="icon">🔎</div>
+        <h3>Search</h3>
+        <p>Find candidate hotels by location or name.</p>
+      </div>
+      <div class="info-card">
+        <div class="icon">🧾</div>
+        <h3>Book / Cancel</h3>
+        <p>Write to the database (set <code>booked</code> to 1 or 0).</p>
+      </div>
+      <div class="info-card">
+        <div class="icon">📅</div>
+        <h3>Update dates</h3>
+        <p>Parse <code>hotel_id, checkin, checkout</code> and update the row.</p>
+      </div>
+    </div>
+
+    <h3>Tool 1 — Search by location</h3>
+    <div class="code-block">
+      <pre><code>def search_hotels_by_location(location):
+    location = location.split("\n")[0].strip()
+    df = pd.read_sql("SELECT * FROM hotels WHERE location = %s", mydb, params=(location,))
+    return df.to_json(orient="records")
+
+search_hotels_by_location_tool = Tool(
+    name="Search hotels by location",
+    func=search_hotels_by_location,
+    description="Search hotels by location.",
+)</code></pre>
+    </div>
+
+    <div class="callout">
+      <p><strong>Why sanitize the input?</strong> Tool inputs sometimes include extra text (newlines, commentary). Cleaning the string makes your SQL tools more robust.</p>
+    </div>
+
+    <h3>Try it</h3>
+    <div class="code-block">
+      <pre><code>tools = [search_hotels_by_location_tool]
+agent = initialize_agent(
+    llm=myllm,
+    tools=tools,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+    return_intermediate_steps=True,
+    handle_parsing_errors=True,
+    max_iterations=4,
+    early_stopping_method="generate",
+)
+
+agent.invoke("Find me hotels in Basel?")</code></pre>
+    </div>
+
+    <h3>Tool 2 — Search by name (fuzzy)</h3>
+    <div class="code-block">
+      <pre><code>def search_hotels_by_name(hotel_name):
+    # SELECT * FROM hotels WHERE name LIKE %s
+    # params=("%" + hotel_name + "%",)
+    # return df.to_json(orient="records")
+    # (Implemented in the notebook as an exercise)
+    pass</code></pre>
+    </div>
+
+    <h3>Tool 3 — Book a hotel (write)</h3>
+    <div class="code-block">
+      <pre><code>def book_hotel(hotel_id):
+    # UPDATE hotels SET booked=1 WHERE id=%s AND booked=0
+    # commit, raise if rowcount==0
+    # (Implemented in the notebook as an exercise)
+    pass</code></pre>
+    </div>
+
+    <h3>Tool 4 — Cancel a booking</h3>
+    <div class="code-block">
+      <pre><code>def cancel_hotel(hotel_id):
+    # UPDATE hotels SET booked=0 WHERE id=%s
+    # commit
+    # (Implemented in the notebook as an exercise)
+    pass</code></pre>
+    </div>
+
+    <h3>Tool 5 — Update check-in / check-out</h3>
+    <p>
+      LangChain tools accept a single string input, so we use a comma-separated contract.
+      The tool description tells the model the exact format.
+    </p>
+    <div class="code-block">
+      <pre><code>update_hotel_tool = Tool(
+    name="Update hotel",
+    func=update_hotel,
+    description="Update hotel dates. Input: 'hotel_id, checkin_date, checkout_date' (e.g., '7, 2026-04-10, 2026-04-19')",
+)</code></pre>
+    </div>
+
+    <div class="callout">
+      <p><strong>Try a multi-action prompt</strong> — “Cancel Hilton Basel and book the Hyatt Regency instead.” A ReAct agent can chain multiple tool calls in one request.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Step 5</div>
+    <h2>Add RAG — answer pricing questions from invoices</h2>
+    <p>
+      The <code>hotels</code> table has no pricing. But invoices exist as PDFs in object storage.
+      Load the PDF into HeatWave’s vector store (via the Chats UI), then create a tool that queries those documents.
+    </p>
+
+    <h3>Load the invoices into HeatWave vector store</h3>
+    <ol>
+      <li>Open the pre-authenticated request URL from the notebook.</li>
+      <li>In MySQL Studio → <strong>Chats</strong>, load the PDF into <strong>HeatWave vector store</strong>.</li>
+      <li>Ask a pricing question to confirm retrieval works.</li>
+    </ol>
+
+    <h3>RAG tool design — retrieve citations, let the agent answer</h3>
+    <p>
+      Call <code>sys.ML_RAG</code> with <code>skip_generate=true</code>. That returns relevant segments (citations) without a final narrative.
+      Then the agent reads those segments and produces the final answer.
+    </p>
+
+    <div class="code-block">
+      <pre><code>-- Retrieve relevant citations (no final generation)
+CALL sys.ML_RAG(
+  "input string",
+  @response,
+  JSON_OBJECT('skip_generate', true)
+);
+SELECT @response;</code></pre>
+    </div>
+
+    <div class="code-block">
+      <pre><code>def rag(question):
+    # 1) Call sys.ML_RAG(skip_generate=true)
+    # 2) Parse JSON response
+    # 3) Return a list of relevant invoice snippets
+    # (Implemented in the notebook as an exercise)
+    pass
+
+rag_tool = Tool(
+    name="Knowledge Base",
+    func=rag,
+    description="Useful for looking up hotel invoices.",
+)</code></pre>
+    </div>
+
+    <h3>Test prompts</h3>
+    <div class="code-block">
+      <pre><code>agent.invoke("What is a price of accommodation at Hilton?")
+agent.invoke("How much does a hotel room cost on average in the city of Bern?")</code></pre>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Outcome</div>
+    <h2>You now have an end-to-end agent</h2>
+    <ul>
+      <li><strong>CRUD via tools</strong> — search, book, cancel, update dates</li>
+      <li><strong>RAG via tools</strong> — answer pricing questions from invoice PDFs</li>
+      <li><strong>All inference in HeatWave</strong> — no external LLM API calls</li>
+    </ul>
+
+    <div class="callout">
+      <p><strong>Key takeaway</strong> — tool descriptions are part of your “API”. Clear contracts (inputs/outputs) are what make agents reliable.</p>
+    </div>
+  </section>
+
+  <style>
+    .notebook-downloads {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 720px) {
+      .notebook-downloads {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .notebook-box {
+      display: block;
+      padding: 14px 14px 12px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+      background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--card) 88%, transparent),
+        color-mix(in oklab, var(--accent) 18%, transparent)
       );
-      <span class="kw">SELECT</span> JSON_PRETTY(@answer) <span class="kw">AS</span> rag_response\G</code></pre>
-          </div>
+      box-shadow: var(--shadow-sm);
+      text-decoration: none;
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    }
 
-          <h3>Option B: Custom RAG pipeline (more control)</h3>
-          <div class="code-block">
-            <pre><code><span class="comment">-- Step 1: Embed the user query</span>
-      <span class="kw">SET</span> @q_vec = (<span class="kw">SELECT</span> <span class="fn">ML_EMBED_ROW</span>(
-        <span class="str">'What were the key findings from the Q3 analysis?'</span>,
-        <span class="str">'multilingual-e5-small'</span>
-      ));
+    .notebook-box:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      border-color: color-mix(in oklab, var(--accent) 35%, var(--border));
+    }
 
-      <span class="comment">-- Step 2: Retrieve top-K context chunks</span>
-      <span class="kw">SELECT</span> chunk_text, doc_name,
-        <span class="fn">DISTANCE</span>(embedding, @q_vec, <span class="str">'COSINE'</span>) <span class="kw">AS</span> score
-      <span class="kw">INTO</span> @ctx
-      <span class="kw">FROM</span> amld_workshop.vector_store
-      <span class="kw">ORDER BY</span> score <span class="kw">LIMIT</span> <span class="num">5</span>;
+    .notebook-box__eyebrow {
+      font-family: var(--workshop-font-mono);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+      margin-bottom: 6px;
+    }
 
-      <span class="comment">-- Step 3: Build augmented prompt and generate</span>
-      <span class="kw">CALL</span> <span class="fn">sys.ML_GENERATE</span>(
-        <span class="fn">CONCAT</span>(
-          <span class="str">'Based on the following context, answer the question.\n\nContext:\n'</span>,
-          @ctx,
-          <span class="str">'\n\nQuestion: What were the key findings from the Q3 analysis?'</span>
-        ),
-        @output
-      );</code></pre>
-          </div>
+    .notebook-box__title {
+      font-weight: 750;
+      font-size: 16px;
+      color: var(--foreground);
+      margin-bottom: 6px;
+    }
 
-          <div class="callout">
-            <p><strong>When to use each option:</strong> Use <code>ML_RAG()</code> for standard Q&A where the built-in pipeline is sufficient. Use the custom pipeline when you need to pre-filter documents, add business logic between retrieval and generation, or combine context from multiple sources (vector store + SQL queries + API responses).</p>
-          </div>
-        </section>
+    .notebook-box__desc {
+      color: var(--muted-foreground);
+      font-size: 13px;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
 
-        <!-- ====== STEP 3: CUSTOM TOOLS ====== -->
-        <section class="section">
-          <div class="section-label">Step 3</div>
-          <h2>Wire in Custom Tools</h2>
-          <p>A RAG chatbot that only answers questions from documents is limited. By adding custom tools, the agent can query structured data, perform calculations, call APIs, and take actions. Here's how to implement tool-calling in the Python agent.</p>
+    .notebook-box__cta {
+      font-family: var(--workshop-font-mono);
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--foreground);
+    }
 
-          <h3>Define tool functions</h3>
-          <div class="code-block">
-            <pre><code><span class="kw">import</span> mysql.connector
-      <span class="kw">import</span> json
+    .notebook-box--exercise {
+      background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--card) 90%, transparent),
+        color-mix(in oklab, var(--info) 16%, transparent)
+      );
+    }
 
-      <span class="comment"># Tool 1: Query structured data via SQL</span>
-      <span class="kw">def</span> <span class="fn">query_products</span>(category: str, limit: int = <span class="num">5</span>) -> dict:
-          <span class="str">"""Search the product catalog by category."""</span>
-          cursor.execute(
-              <span class="str">"SELECT name, price, stock FROM products "</span>
-              <span class="str">"WHERE category = %s ORDER BY price DESC LIMIT %s"</span>,
-              (category, limit)
-          )
-          <span class="kw">return</span> &#123;<span class="str">"products"</span>: cursor.fetchall()&#125;
+    .notebook-box--exercise:hover {
+      border-color: color-mix(in oklab, var(--info) 35%, var(--border));
+    }
 
-      <span class="comment"># Tool 2: RAG search over documents</span>
-      <span class="kw">def</span> <span class="fn">search_documents</span>(query: str, n_results: int = <span class="num">3</span>) -> dict:
-          <span class="str">"""Search unstructured documents using vector similarity."""</span>
-          cursor.callproc(<span class="str">'sys.ML_RAG'</span>, [query, <span class="str">'@out'</span>, json.dumps(&#123;
-              <span class="str">"n_citations"</span>: n_results,
-              <span class="str">"tables"</span>: [<span class="str">"amld_workshop.vector_store"</span>]
-          &#125;)])
-          cursor.execute(<span class="str">"SELECT @out"</span>)
-          <span class="kw">return</span> json.loads(cursor.fetchone()[<span class="num">0</span>])
+    .notebook-box--solution {
+      background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--card) 90%, transparent),
+        color-mix(in oklab, var(--success) 16%, transparent)
+      );
+    }
 
-      <span class="comment"># Tool 3: Natural language SQL</span>
-      <span class="kw">def</span> <span class="fn">ask_database</span>(question: str) -> dict:
-          <span class="str">"""Convert natural language to SQL and execute."""</span>
-          cursor.callproc(<span class="str">'sys.NL_SQL'</span>, [question, <span class="str">'@sql'</span>])
-          cursor.execute(<span class="str">"SELECT @sql"</span>)
-          sql = cursor.fetchone()[<span class="num">0</span>]
-          cursor.execute(sql)
-          <span class="kw">return</span> &#123;<span class="str">"sql"</span>: sql, <span class="str">"results"</span>: cursor.fetchall()&#125;</code></pre>
-          </div>
+    .notebook-box--solution:hover {
+      border-color: color-mix(in oklab, var(--success) 35%, var(--border));
+    }
 
-          <h3>Tool registry &amp; routing</h3>
-          <div class="code-block">
-            <pre><code><span class="comment"># Register tools with descriptions for the agent</span>
-      TOOLS = &#123;
-          <span class="str">"query_products"</span>: &#123;
-              <span class="str">"fn"</span>: query_products,
-              <span class="str">"description"</span>: <span class="str">"Search the product catalog by category"</span>,
-              <span class="str">"params"</span>: &#123;<span class="str">"category"</span>: <span class="str">"str"</span>, <span class="str">"limit"</span>: <span class="str">"int"</span>&#125;
-          &#125;,
-          <span class="str">"search_documents"</span>: &#123;
-              <span class="str">"fn"</span>: search_documents,
-              <span class="str">"description"</span>: <span class="str">"Search documents using RAG"</span>,
-              <span class="str">"params"</span>: &#123;<span class="str">"query"</span>: <span class="str">"str"</span>, <span class="str">"n_results"</span>: <span class="str">"int"</span>&#125;
-          &#125;,
-          <span class="str">"ask_database"</span>: &#123;
-              <span class="str">"fn"</span>: ask_database,
-              <span class="str">"description"</span>: <span class="str">"Ask a question in natural language about structured data"</span>,
-              <span class="str">"params"</span>: &#123;<span class="str">"question"</span>: <span class="str">"str"</span>&#125;
-          &#125;
-      &#125;</code></pre>
-          </div>
-        </section>
+    .mini-diagram {
+      display: grid;
+      gap: 12px;
+      padding: 4px 0;
+    }
 
-        <!-- ====== MCP INTEGRATION ====== -->
-        <section class="section">
-          <div class="section-label">Advanced</div>
-          <h2>Model Context Protocol (MCP) Integration</h2>
-          <p>For production-grade agent architectures, MySQL HeatWave provides an official MCP Server that exposes database capabilities as standardized tools for any MCP-compatible AI client (Claude Desktop, VS Code, Cline, etc.).</p>
+    .mini-diagram__row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
 
-          <div class="diagram-card">
-            <div class="caption">Fig 8 — MCP Server Architecture</div>
-            <svg viewBox="0 0 840 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;">
-              <defs>
-                <marker id="ah8" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a78bfa"/></marker>
-                <marker id="ah8o" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f97316"/></marker>
-              </defs>
+    .mini-diagram__row--tools {
+      gap: 14px;
+      flex-wrap: wrap;
+    }
 
-              <!-- AI Clients -->
-              <rect x="20" y="30" width="140" height="55" rx="8" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/>
-              <text x="90" y="55" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Claude Desktop</text>
-              <text x="90" y="72" text-anchor="middle" fill="var(--text-muted)" font-size="9">MCP Client</text>
+    .mini-diagram__arrow {
+      font-family: var(--workshop-font-mono);
+      color: var(--muted-foreground);
+    }
 
-              <rect x="20" y="100" width="140" height="55" rx="8" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/>
-              <text x="90" y="125" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">VS Code / Cline</text>
-              <text x="90" y="142" text-anchor="middle" fill="var(--text-muted)" font-size="9">MCP Client</text>
+    .mini-diagram__box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      color: var(--foreground);
+      text-align: center;
+      min-width: min(260px, 100%);
+      box-shadow: var(--shadow-sm);
+    }
 
-              <rect x="20" y="170" width="140" height="55" rx="8" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/>
-              <text x="90" y="195" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Custom App</text>
-              <text x="90" y="212" text-anchor="middle" fill="var(--text-muted)" font-size="9">MCP Client</text>
+    .mini-diagram__box span {
+      display: block;
+      margin-top: 4px;
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
 
-              <!-- Arrows to MCP Server -->
-              <line x1="160" y1="58" x2="260" y2="130" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#ah8)"/>
-              <line x1="160" y1="128" x2="260" y2="130" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#ah8)"/>
-              <line x1="160" y1="198" x2="260" y2="130" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#ah8)"/>
+    .mini-diagram__box--agent {
+      background: color-mix(in oklab, var(--info) 10%, var(--card) 90%);
+    }
 
-              <!-- MCP Server -->
-              <rect x="260" y="70" width="200" height="120" rx="10" fill="rgba(249,115,22,0.08)" stroke="var(--orange)" stroke-width="2"/>
-              <text x="360" y="100" text-anchor="middle" fill="var(--orange)" font-size="13" font-weight="700">MySQL HeatWave</text>
-              <text x="360" y="118" text-anchor="middle" fill="var(--orange)" font-size="13" font-weight="700">MCP Server</text>
-              <text x="360" y="142" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">Connection Mgmt · SQL Exec</text>
-              <text x="360" y="158" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">Vector Store · RAG · OCI ObjStore</text>
-              <text x="360" y="174" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">Schema Browse · NL2SQL</text>
+    .mini-diagram__box--sql {
+      background: color-mix(in oklab, var(--info) 8%, var(--card) 92%);
+    }
 
-              <!-- Arrows to backends -->
-              <line x1="460" y1="100" x2="540" y2="60" stroke="var(--orange)" stroke-width="1.2" marker-end="url(#ah8o)"/>
-              <line x1="460" y1="130" x2="540" y2="130" stroke="var(--orange)" stroke-width="1.2" marker-end="url(#ah8o)"/>
-              <line x1="460" y1="160" x2="540" y2="200" stroke="var(--orange)" stroke-width="1.2" marker-end="url(#ah8o)"/>
+    .mini-diagram__box--db {
+      background: color-mix(in oklab, var(--accent) 10%, var(--card) 90%);
+    }
 
-              <!-- Backends -->
-              <rect x="540" y="25" width="160" height="55" rx="8" fill="rgba(20,184,166,0.08)" stroke="var(--teal)" stroke-width="1.5"/>
-              <text x="620" y="48" text-anchor="middle" fill="var(--teal)" font-size="11" font-weight="600">MySQL HeatWave</text>
-              <text x="620" y="65" text-anchor="middle" fill="var(--text-muted)" font-size="9">Cloud DB System</text>
-
-              <rect x="540" y="100" width="160" height="55" rx="8" fill="rgba(59,130,246,0.08)" stroke="var(--blue)" stroke-width="1.5"/>
-              <text x="620" y="123" text-anchor="middle" fill="var(--blue)" font-size="11" font-weight="600">MySQL AI</text>
-              <text x="620" y="140" text-anchor="middle" fill="var(--text-muted)" font-size="9">On-Premise</text>
-
-              <rect x="540" y="175" width="160" height="55" rx="8" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/>
-              <text x="620" y="198" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">OCI Object Store</text>
-              <text x="620" y="215" text-anchor="middle" fill="var(--text-muted)" font-size="9">Documents · Buckets</text>
-
-              <!-- Note -->
-              <text x="740" y="130" fill="var(--text-muted)" font-size="9" font-style="italic">Supports</text>
-              <text x="740" y="144" fill="var(--text-muted)" font-size="9" font-style="italic">heterogeneous</text>
-              <text x="740" y="158" fill="var(--text-muted)" font-size="9" font-style="italic">connections</text>
-            </svg>
-          </div>
-
-          <p>The MCP Server provides tools for connection management, SQL execution, schema browsing, vector store operations (including ingestion from Object Storage), RAG queries, and NL2SQL. It supports both homogeneous and heterogeneous database connections, meaning you can mix MySQL HeatWave (cloud) and MySQL AI (on-premise) endpoints.</p>
-
-          <table class="data-table">
-            <thead><tr><th>MCP Tool</th><th>Description</th></tr></thead>
-            <tbody>
-              <tr><td><code>list_all_connections</code></td><td>List configured database connections</td></tr>
-              <tr><td><code>execute_sql</code></td><td>Run SQL queries against a connection</td></tr>
-              <tr><td><code>browse_schema</code></td><td>Explore databases, tables, and columns</td></tr>
-              <tr><td><code>vector_store_ingest</code></td><td>Load and vectorize documents from Object Storage</td></tr>
-              <tr><td><code>ml_rag</code></td><td>RAG query against vector store</td></tr>
-              <tr><td><code>nl_sql</code></td><td>Natural language to SQL conversion</td></tr>
-              <tr><td><code>list_oci_buckets</code></td><td>Browse OCI Object Storage buckets</td></tr>
-              <tr><td><code>list_oci_objects</code></td><td>List objects in a specific bucket</td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <!-- ====== PUTTING IT TOGETHER ====== -->
-        <section class="section">
-          <div class="section-label">Step 4</div>
-          <h2>Putting It All Together: The Agent Loop</h2>
-          <p>Here's the complete agent loop that ties ingestion, RAG, and tool calling together into a conversational interface:</p>
-
-          <div class="code-block">
-            <pre><code><span class="kw">import</span> mysql.connector
-      <span class="kw">import</span> json
-
-      <span class="kw">class</span> <span class="fn">RAGAgent</span>:
-          <span class="kw">def</span> <span class="fn">__init__</span>(self, connection_config, tools):
-              self.conn = mysql.connector.<span class="fn">connect</span>(**connection_config)
-              self.cursor = self.conn.cursor(dictionary=<span class="kw">True</span>)
-              self.tools = tools
-              self.history = []
-
-          <span class="kw">def</span> <span class="fn">classify_intent</span>(self, user_msg):
-              <span class="str">"""Determine if query needs RAG, SQL, or a custom tool."""</span>
-              self.cursor.callproc(<span class="str">'sys.ML_GENERATE'</span>, [
-                  <span class="fn">json.dumps</span>(&#123;<span class="str">"prompt"</span>: f<span class="str">"""Classify this query into one of:
-                  - rag: needs document search
-                  - sql: needs structured data query
-                  - tool: needs a specific action
-                  Query: &#123;user_msg&#125;
-                  Respond with just the category."""</span>&#125;),
-                  <span class="str">'@intent'</span>
-              ])
-              self.cursor.execute(<span class="str">"SELECT @intent"</span>)
-              <span class="kw">return</span> self.cursor.fetchone()[<span class="str">'@intent'</span>].strip()
-
-          <span class="kw">def</span> <span class="fn">chat</span>(self, user_msg):
-              <span class="str">"""Main agent loop — classify, route, respond."""</span>
-              intent = self.<span class="fn">classify_intent</span>(user_msg)
-
-              <span class="kw">if</span> intent == <span class="str">'rag'</span>:
-                  self.cursor.callproc(<span class="str">'sys.ML_RAG'</span>, [
-                      user_msg, <span class="str">'@answer'</span>,
-                      <span class="fn">json.dumps</span>(&#123;<span class="str">"n_citations"</span>: <span class="num">3</span>&#125;)
-                  ])
-                  self.cursor.execute(<span class="str">"SELECT @answer"</span>)
-                  response = self.cursor.fetchone()[<span class="str">'@answer'</span>]
-
-              <span class="kw">elif</span> intent == <span class="str">'sql'</span>:
-                  result = self.tools[<span class="str">'ask_database'</span>][<span class="str">'fn'</span>](user_msg)
-                  response = f<span class="str">"SQL: &#123;result['sql']&#125;\nResults: &#123;result['results']&#125;"</span>
-
-              <span class="kw">else</span>:
-                  response = self.<span class="fn">route_to_tool</span>(user_msg)
-
-              self.history.append(&#123;<span class="str">"user"</span>: user_msg, <span class="str">"assistant"</span>: response&#125;)
-              <span class="kw">return</span> response</code></pre>
-          </div>
-        </section>
-
-        <!-- ====== OUTCOME ====== -->
-        <section class="section">
-          <div class="section-label">Outcome</div>
-          <h2>Something You Can Demo</h2>
-          <p>You now have a working RAG chatbot backed by MySQL HeatWave GenAI that can:</p>
-          <ul>
-            <li>Ingest documents from Object Storage and generate vector embeddings automatically</li>
-            <li>Retrieve relevant context from a vector index using similarity search</li>
-            <li>Generate answers with citations using in-database LLMs and RAG</li>
-            <li>Query structured data through natural language (NL2SQL)</li>
-            <li>Call custom tools to take actions beyond simple Q&A</li>
-            <li>Optionally integrate via Model Context Protocol for production use</li>
-          </ul>
-
-          <div class="callout-orange callout">
-            <p><strong>Next steps to extend your agent:</strong> Add more document sources (Lakehouse tables, web content), implement conversation memory with chat history, add authentication and rate limiting, build a Streamlit or React frontend, and explore the MySQL HeatWave Python SDK for deeper integration.</p>
-          </div>
-        </section>
-
-        <!-- ====== RESOURCES ====== -->
-        <section class="section">
-          <div class="section-label">Resources</div>
-          <h2>Further Reading</h2>
-          <table class="data-table">
-            <thead><tr><th>Resource</th><th>Link</th></tr></thead>
-            <tbody>
-              <tr><td>MySQL HeatWave GenAI User Guide</td><td><code>dev.mysql.com/doc/heatwave/en/mys-hw-genai-overview.html</code></td></tr>
-              <tr><td>MySQL HeatWave MCP Server</td><td><code>github.com/oracle/mcp → mysql-mcp-server</code></td></tr>
-              <tr><td>MySQL Studio Blog Post</td><td><code>blogs.oracle.com/mysql/reducing-the-barriers-to-data-innovation</code></td></tr>
-              <tr><td>NL2SQL in MySQL</td><td><code>blogs.oracle.com/mysql/natural-language-to-sql-available-with-mysql</code></td></tr>
-              <tr><td>HeatWave GenAI RAG Apps</td><td><code>blogs.oracle.com/mysql/effortlessly-build-aipowered-qa-apps-using-heatwave-genai</code></td></tr>
-              <tr><td>Oracle MCP Portal</td><td><code>oracle.com/mcp</code></td></tr>
-            </tbody>
-          </table>
-        </section>
-
-
-
+    .mini-diagram__box--rag {
+      background: color-mix(in oklab, var(--success) 10%, var(--card) 90%);
+    }
+  </style>
 </WorkshopPartLayout>
