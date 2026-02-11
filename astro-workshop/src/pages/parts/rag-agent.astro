@@ -320,7 +320,8 @@ pd.read_sql("SELECT * FROM hotels LIMIT 10", mydb)</code></pre>
       </div>
     </div>
 
-    <h3>Tool 1 — Search by location</h3>
+    <div class="section-label">Tool 1</div>
+    <h3>Search by location</h3>
     <p>
       The agent’s first job is to <strong>ground the conversation in real rows</strong>.
       When a user says “Find me hotels in Basel”, the model shouldn’t guess — it should call a tool that
@@ -368,7 +369,8 @@ agent = initialize_agent(
 agent.invoke("Find me hotels in Basel?")</code></pre>
     </div>
 
-    <h3>Tool 2 — Search by name (fuzzy)</h3>
+    <div class="section-label">Tool 2</div>
+    <h3>Search by name (fuzzy)</h3>
     <p>
       Users rarely type the exact hotel name stored in the database.
       This tool handles “close enough” queries and helps the agent map a request to a specific record.
@@ -379,7 +381,8 @@ agent.invoke("Find me hotels in Basel?")</code></pre>
     pass</code></pre>
     </div>
 
-    <h3>Tool 3 — Book a hotel (write)</h3>
+    <div class="section-label">Tool 3</div>
+    <h3>Book a hotel (write)</h3>
     <p>
       Booking is the first write action.
       It should update a single hotel row and fail safely if the booking can’t be applied.
@@ -390,7 +393,8 @@ agent.invoke("Find me hotels in Basel?")</code></pre>
     pass</code></pre>
     </div>
 
-    <h3>Tool 4 — Cancel a booking</h3>
+    <div class="section-label">Tool 4</div>
+    <h3>Cancel a booking</h3>
     <p>
       Cancel is the “undo” operation.
       It should revert a booking in the database using a single, explicit update.
@@ -401,7 +405,8 @@ agent.invoke("Find me hotels in Basel?")</code></pre>
     pass</code></pre>
     </div>
 
-    <h3>Tool 5 — Update check-in / check-out</h3>
+    <div class="section-label">Tool 5</div>
+    <h3>Update check-in / check-out</h3>
     <p>
       This tool updates dates after a hotel is selected.
       It’s a separate tool because date parsing and validation is a distinct concern from booking.
