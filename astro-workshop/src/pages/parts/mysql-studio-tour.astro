@@ -223,6 +223,22 @@ ORDER BY avg_nights DESC;</pre>
           <div class="section-label">Exercise 3</div>
           <h2>Vector Operations &amp; Similarity Search</h2>
           <p>
+            <strong>Why embeddings matter:</strong> a PDF invoice segment and your question may use different words (e.g., “breakfast included” vs “meal plan”),
+            but mean the same thing. Embeddings convert text into vectors where semantically similar content ends up close together. That’s what makes
+            <em>semantic search</em> work: instead of matching exact keywords, we search for the nearest vectors.
+          </p>
+
+          <div class="diagram-card" style="margin-top:12px;">
+            <img
+              src={`${baseUrl}assets/vectors.png`}
+              alt="Embeddings map text into vectors for semantic similarity search"
+              loading="lazy"
+              style="width:100%;height:auto;max-width:840px;display:block;"
+            />
+            <div class="caption">Fig 6 — Embeddings enable semantic similarity</div>
+          </div>
+
+          <p>
             In the previous step, you created a vector store from <code>hotel_invoices.pdf</code>. Now we'll continue by doing the same operations directly in SQL:
             generate a query embedding with <code>ML_EMBED_ROW()</code>, then run a similarity search over the vector store table (<code>hotel_invoices_pdf</code>).
           </p>
@@ -299,29 +315,13 @@ SELECT sys.ML_EMBED_ROW(
           <div class="section-label" style="margin-top:18px;">Step 2</div>
           <h3>Run a similarity search</h3>
           <p>With the query vector, do a Top-K nearest-neighbor search using <code>DISTANCE()</code> against <code>hotel_invoices_pdf.segment_embedding</code>:</p>
-          <pre class="code-block">-- Find the 5 most similar invoice segments
-SELECT
-  document_name,
-  document_id,
-  segment_number,
-  segment,
-  DISTANCE(segment_embedding, @query_vec, 'COSINE') AS distance
-FROM hotel_invoices_pdf
-ORDER BY distance
-LIMIT 5;</pre>
+          <pre class="code-block">USE &lt;username&gt;;
 
-          <div class="section-label" style="margin-top:18px;">Step 3 (Optional)</div>
-          <h3>Optional: filter &amp; inspect metadata</h3>
-          <p>If you ingested multiple documents into the same table, you can filter by <code>document_name</code>. You can also inspect JSON fields stored in <code>metadata</code> and <code>segment_metadata</code>:</p>
-          <pre class="code-block">-- Example: filter to one document and display JSON metadata
+-- Find the 5 most similar invoice segments
 SELECT
-  document_name,
-  segment_number,
   segment,
-  JSON_PRETTY(segment_metadata) AS segment_metadata,
   DISTANCE(segment_embedding, @query_vec, 'COSINE') AS distance
 FROM hotel_invoices_pdf
-WHERE document_name = 'hotel_invoices.pdf'
 ORDER BY distance
 LIMIT 5;</pre>
 
