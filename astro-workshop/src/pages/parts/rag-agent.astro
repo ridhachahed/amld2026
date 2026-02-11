@@ -20,8 +20,17 @@ const solutionNotebook = `${baseUrl}assets/notebooks/amld-heatwave-genai-lab-sol
     <div class="section-label">Architecture</div>
     <h2>The loop — think → call a tool → observe → answer</h2>
     <p>
-      This lab uses a <strong>ReAct agent</strong> powered by HeatWave’s in-database LLM. Instead of hoping the model “knows” your data,
-      we give it tools to fetch it.
+      This lab uses a <strong>ReAct agent</strong> powered by HeatWave’s in-database LLM.
+      The mental model is simple: <strong>the LLM is the planner</strong>, and <strong>tools are the hands</strong>.
+      Instead of hoping the model “knows” your hotel inventory or invoice pricing,
+      we give it small, reliable functions that can <em>read</em> and <em>write</em> the database (and retrieve documents).
+    </p>
+
+    <p>
+      In practice, the agent runs in a loop:
+      it reads your request, decides which tool to call, inspects the tool output, and repeats until it can answer.
+      When this works well, it feels like chatting with a “booking assistant” — but under the hood it’s just
+      <strong>structured tool calls + SQL + retrieval</strong>.
     </p>
 
     <div class="diagram-card">
@@ -60,6 +69,24 @@ const solutionNotebook = `${baseUrl}assets/notebooks/amld-heatwave-genai-lab-sol
       </div>
     </div>
 
+    <div class="diagram-card">
+      <div class="caption">Fig 8 — The ReAct loop (what <code>verbose=True</code> shows you)</div>
+
+      <div class="mini-diagram" role="img" aria-label="ReAct loop diagram — question, tool selection, observation, final answer.">
+        <div class="mini-diagram__row mini-diagram__row--react">
+          <div class="mini-diagram__box mini-diagram__box--react">User question</div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--react">Thought</div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--react">Action (tool)</div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--react">Observation</div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--react">Final answer</div>
+        </div>
+      </div>
+    </div>
+
     <div class="notebook-downloads" aria-label="Notebook downloads">
       <a class="notebook-box notebook-box--exercise" href={exerciseNotebook} download>
         <div class="notebook-box__eyebrow">Notebook</div>
@@ -85,6 +112,13 @@ const solutionNotebook = `${baseUrl}assets/notebooks/amld-heatwave-genai-lab-sol
       If you see <code>(1,)</code>, you’re ready.
     </p>
 
+    <div class="callout">
+      <p>
+        <strong>Why this matters</strong> — every tool call you build later is just “run a SQL statement and return a structured result”.
+        If the connection is flaky, the agent will look unreliable even if your prompts are perfect.
+      </p>
+    </div>
+
     <div class="code-block">
       <pre><code>import os
 import mysql.connector
@@ -101,8 +135,14 @@ print(cursor.fetchone())</code></pre>
     <div class="section-label">Step 2</div>
     <h2>Create an agent (and watch it fail)</h2>
     <p>
-      Before building real tools, create a minimal agent backed by HeatWave’s in-database LLM. We add a placeholder tool,
-      then ask it to book a hotel.
+      Before building real tools, create a minimal <strong>ReAct agent</strong> backed by HeatWave’s in-database LLM.
+      We add a placeholder tool, then ask it to book a hotel.
+    </p>
+
+    <p>
+      This is a useful “calibration” moment:
+      you’ll see the agent try to be helpful, but it has no way to check availability or persist a booking.
+      That gap is exactly what tools fill.
     </p>
 
     <div class="code-block">
@@ -136,7 +176,33 @@ agent.invoke("Book the Hilton Basel for me!")</code></pre>
     </div>
 
     <div class="callout">
+      <p>
+        <strong>What does <code>AgentType.ZERO_SHOT_REACT_DESCRIPTION</code> mean?</strong>
+        LangChain uses this setting to run a ReAct-style agent that chooses tools <em>zero-shot</em>.
+        In other words: it reads the <strong>tool descriptions</strong>, decides which tool to call,
+        observes the result, and repeats until it can answer.
+      </p>
+    </div>
+
+    <figure class="asset-figure">
+      <img
+        src={`${baseUrl}assets/react.png`}
+        alt="ReAct pattern: reasoning + action with tool observations"
+        loading="lazy"
+        class="asset-figure__img"
+      />
+      <figcaption class="asset-figure__caption">ReAct: interleave reasoning and tool calls.</figcaption>
+    </figure>
+
+    <div class="callout">
       <p><strong>Expected behavior</strong> — it can’t actually book anything. Without tools, the agent has no way to read availability or update bookings.</p>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>Tip</strong> — keep <code>verbose=True</code> while developing. It lets you debug:
+        did the model pick the wrong tool, or did the tool return the wrong data?
+      </p>
     </div>
   </section>
 
@@ -147,6 +213,33 @@ agent.invoke("Book the Hilton Basel for me!")</code></pre>
       Tools are just functions. To write good tools, we need to know the schema.
       In this lab, the agent operates on a <code>hotels</code> table with booking state and optional dates.
     </p>
+
+    <p>
+      Think of the schema as the agent’s “world state”.
+      If you can answer a question by looking at a row in <code>hotels</code>, then a tool can answer it too.
+      If you need information that isn’t in the table (like pricing), that’s where the RAG tool comes in later.
+    </p>
+
+    <div class="diagram-card">
+      <div class="caption">Fig 8 — Schema snapshot (what the SQL tools operate on)</div>
+
+      <div class="schema-diagram" role="img" aria-label="Database schema diagram — hotels table with key columns used by tools.">
+        <div class="schema-diagram__table">
+          <div class="schema-diagram__title">hotels</div>
+          <div class="schema-diagram__row"><code>id</code> <span class="schema-diagram__meta">PK</span></div>
+          <div class="schema-diagram__row"><code>name</code> <span class="schema-diagram__meta">text</span></div>
+          <div class="schema-diagram__row"><code>location</code> <span class="schema-diagram__meta">text</span></div>
+          <div class="schema-diagram__row"><code>booked</code> <span class="schema-diagram__meta">0/1</span></div>
+          <div class="schema-diagram__row"><code>checkin_date</code> <span class="schema-diagram__meta">date</span></div>
+          <div class="schema-diagram__row"><code>checkout_date</code> <span class="schema-diagram__meta">date</span></div>
+        </div>
+
+        <div class="schema-diagram__note">
+          <strong>Note:</strong> pricing is <em>not</em> in this table.
+          Pricing questions are answered later via the RAG tool over invoice PDFs.
+        </div>
+      </div>
+    </div>
 
     <div class="code-block">
       <pre><code>import pandas as pd
@@ -179,6 +272,36 @@ pd.read_sql("SELECT * FROM hotels LIMIT 10", mydb)</code></pre>
       The description is part of your “API” — the LLM uses it to decide which tool to call and how to format the input.
     </p>
 
+    <div class="diagram-card">
+      <div class="caption">Fig 9 — How a tool bridges natural language to SQL</div>
+
+      <div class="mini-diagram" role="img" aria-label="Tool bridge diagram — prompt to tool description to function to SQL to JSON output.">
+        <div class="mini-diagram__row mini-diagram__row--tools">
+          <div class="mini-diagram__box mini-diagram__box--tool">
+            Tool description
+            <span>name + input contract + when to use</span>
+          </div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--tool">
+            Python function
+            <span>parse input, run SQL, return JSON</span>
+          </div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--db">
+            MySQL HeatWave
+            <span>SELECT / UPDATE / commit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>Tool design rule of thumb</strong> — keep tools narrow and predictable.
+        Prefer returning JSON (not prose), and let the agent write the narrative.
+      </p>
+    </div>
+
     <div class="info-grid">
       <div class="info-card">
         <div class="icon">🔎</div>
@@ -198,6 +321,12 @@ pd.read_sql("SELECT * FROM hotels LIMIT 10", mydb)</code></pre>
     </div>
 
     <h3>Tool 1 — Search by location</h3>
+    <p>
+      The agent’s first job is to <strong>ground the conversation in real rows</strong>.
+      When a user says “Find me hotels in Basel”, the model shouldn’t guess — it should call a tool that
+      returns the matching candidates.
+      That result becomes the context for the next step (choosing an <code>id</code> to book, updating dates, etc.).
+    </p>
     <div class="code-block">
       <pre><code>def search_hotels_by_location(location):
     location = location.split("\n")[0].strip()
@@ -213,6 +342,13 @@ search_hotels_by_location_tool = Tool(
 
     <div class="callout">
       <p><strong>Why sanitize the input?</strong> Tool inputs sometimes include extra text (newlines, commentary). Cleaning the string makes your SQL tools more robust.</p>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>What the agent “sees”</strong> — it doesn’t see your source code; it sees the tool <em>name</em> and <em>description</em>.
+        That’s why descriptions should include: what the tool does, required inputs, and what it returns.
+      </p>
     </div>
 
     <h3>Try it</h3>
@@ -233,38 +369,54 @@ agent.invoke("Find me hotels in Basel?")</code></pre>
     </div>
 
     <h3>Tool 2 — Search by name (fuzzy)</h3>
+    <p>
+      Users rarely type the exact hotel name stored in the database.
+      This tool handles “close enough” queries and helps the agent map a request to a specific record.
+    </p>
     <div class="code-block">
       <pre><code>def search_hotels_by_name(hotel_name):
-    # SELECT * FROM hotels WHERE name LIKE %s
-    # params=("%" + hotel_name + "%",)
-    # return df.to_json(orient="records")
-    # (Implemented in the notebook as an exercise)
+    # TODO: Implement in the notebook.
     pass</code></pre>
     </div>
 
     <h3>Tool 3 — Book a hotel (write)</h3>
+    <p>
+      Booking is the first write action.
+      It should update a single hotel row and fail safely if the booking can’t be applied.
+    </p>
     <div class="code-block">
       <pre><code>def book_hotel(hotel_id):
-    # UPDATE hotels SET booked=1 WHERE id=%s AND booked=0
-    # commit, raise if rowcount==0
-    # (Implemented in the notebook as an exercise)
+    # TODO: Implement in the notebook.
     pass</code></pre>
     </div>
 
     <h3>Tool 4 — Cancel a booking</h3>
+    <p>
+      Cancel is the “undo” operation.
+      It should revert a booking in the database using a single, explicit update.
+    </p>
     <div class="code-block">
       <pre><code>def cancel_hotel(hotel_id):
-    # UPDATE hotels SET booked=0 WHERE id=%s
-    # commit
-    # (Implemented in the notebook as an exercise)
+    # TODO: Implement in the notebook.
     pass</code></pre>
     </div>
 
     <h3>Tool 5 — Update check-in / check-out</h3>
     <p>
+      This tool updates dates after a hotel is selected.
+      It’s a separate tool because date parsing and validation is a distinct concern from booking.
+    </p>
+    <p>
       LangChain tools accept a single string input, so we use a comma-separated contract.
       The tool description tells the model the exact format.
     </p>
+
+    <div class="callout">
+      <p>
+        <strong>Why a strict input format?</strong> — the easiest way to make agents reliable is to make tool inputs unambiguous.
+        If you later switch to structured tool calling (JSON schema), the same principle applies.
+      </p>
+    </div>
     <div class="code-block">
       <pre><code>update_hotel_tool = Tool(
     name="Update hotel",
@@ -286,6 +438,12 @@ agent.invoke("Find me hotels in Basel?")</code></pre>
       Load the PDF into HeatWave’s vector store (via the Chats UI), then create a tool that queries those documents.
     </p>
 
+    <p>
+      This is the “story twist” of the lab:
+      your agent can <em>transact</em> in SQL, but it can’t guess a price that isn’t stored in the table.
+      With RAG, you give it a second sense: it can retrieve the relevant part of an invoice and answer with evidence.
+    </p>
+
     <h3>Load the invoices into HeatWave vector store</h3>
     <ol>
       <li>Open the pre-authenticated request URL from the notebook.</li>
@@ -298,6 +456,41 @@ agent.invoke("Find me hotels in Basel?")</code></pre>
       Call <code>sys.ML_RAG</code> with <code>skip_generate=true</code>. That returns relevant segments (citations) without a final narrative.
       Then the agent reads those segments and produces the final answer.
     </p>
+
+    <div class="diagram-card">
+      <div class="caption">Fig 10 — RAG in one picture (retrieve → then generate)</div>
+
+      <div class="mini-diagram" role="img" aria-label="RAG diagram — question to ML_RAG retrieval, citations, then LLM writes final answer.">
+        <div class="mini-diagram__row mini-diagram__row--tools">
+          <div class="mini-diagram__box mini-diagram__box--rag">
+            Question
+            <span>“What’s the Hilton nightly rate?”</span>
+          </div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--db">
+            <code>sys.ML_RAG</code>
+            <span>retrieve relevant invoice chunks</span>
+          </div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--rag">
+            Citations
+            <span>snippets + file/page metadata</span>
+          </div>
+          <div class="mini-diagram__arrow">→</div>
+          <div class="mini-diagram__box mini-diagram__box--agent">
+            Agent answer
+            <span>final narrative + references</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>Why <code>skip_generate=true</code>?</strong> — it separates concerns.
+        The database retrieves, the agent explains. This makes debugging and citation handling much easier.
+      </p>
+    </div>
 
     <div class="code-block">
       <pre><code>-- Retrieve relevant citations (no final generation)
@@ -342,6 +535,14 @@ agent.invoke("How much does a hotel room cost on average in the city of Bern?")<
 
     <div class="callout">
       <p><strong>Key takeaway</strong> — tool descriptions are part of your “API”. Clear contracts (inputs/outputs) are what make agents reliable.</p>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>A good finishing prompt</strong> — “Book me an available hotel in Basel for next weekend,
+        then tell me what similar stays cost based on the invoices.”
+        You’ll see the agent combine SQL tools (state) and RAG (knowledge) in a single conversation.
+      </p>
     </div>
   </section>
 
@@ -452,6 +653,11 @@ agent.invoke("How much does a hotel room cost on average in the city of Bern?")<
       flex-wrap: wrap;
     }
 
+    .mini-diagram__row--react {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .mini-diagram__arrow {
       font-family: var(--workshop-font-mono);
       color: var(--muted-foreground);
@@ -491,6 +697,95 @@ agent.invoke("How much does a hotel room cost on average in the city of Bern?")<
 
     .mini-diagram__box--rag {
       background: color-mix(in oklab, var(--success) 10%, var(--card) 90%);
+    }
+
+    .mini-diagram__box--tool {
+      background: color-mix(in oklab, var(--warning) 10%, var(--card) 90%);
+    }
+
+    .mini-diagram__box--react {
+      background: color-mix(in oklab, var(--info) 8%, var(--card) 92%);
+      min-width: 160px;
+      padding: 10px 12px;
+    }
+
+    .schema-diagram {
+      display: grid;
+      grid-template-columns: minmax(240px, 380px) 1fr;
+      gap: 14px;
+      align-items: start;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 820px) {
+      .schema-diagram {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .schema-diagram__table {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .schema-diagram__title {
+      padding: 12px 14px;
+      font-weight: 800;
+      background: color-mix(in oklab, var(--accent) 10%, var(--card) 90%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .schema-diagram__row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+      font-family: var(--workshop-font-mono);
+      font-size: 13px;
+    }
+
+    .schema-diagram__row:last-child {
+      border-bottom: 0;
+    }
+
+    .schema-diagram__meta {
+      font-family: var(--workshop-font-mono);
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+    .schema-diagram__note {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+      background: color-mix(in oklab, var(--info) 6%, var(--card) 94%);
+      color: var(--muted-foreground);
+      box-shadow: var(--shadow-sm);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .asset-figure {
+      margin: 14px 0 0;
+    }
+
+    .asset-figure__img {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .asset-figure__caption {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted-foreground);
+      text-align: center;
     }
   </style>
 </WorkshopPartLayout>
