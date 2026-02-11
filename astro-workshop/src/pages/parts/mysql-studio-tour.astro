@@ -64,38 +64,96 @@ const baseUrl = import.meta.env.BASE_URL;
           <h2>Run SQL &amp; Inspect Schema</h2>
           <p>Let's start with the basics: connecting to the database, browsing the schema, and running queries.</p>
 
+          <details class="callout" style="margin-top:12px;">
+            <summary><strong>Setup (already done): create the sample <code>hotels</code> table</strong></summary>
+            <p style="margin-top:10px;">We've already created the schema objects you'll use in this exercise. If you need to recreate them (or want to understand what was run), expand the SQL below and execute it in the SQL Editor:</p>
+            <pre class="code-block">USE &lt;username&gt;; -- change to your username
+
+DROP TABLE IF EXISTS hotels;
+CREATE TABLE hotels(
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  location VARCHAR(255) NOT NULL,
+  price_tier VARCHAR(50) NOT NULL,
+  checkin_date DATE NOT NULL,
+  checkout_date DATE NOT NULL,
+  booked TINYINT NOT NULL DEFAULT 0
+);
+
+INSERT INTO hotels(id, name, location, price_tier, checkin_date, checkout_date, booked)
+VALUES
+  (1, 'Hilton Basel', 'Basel', 'Luxury', '2026-03-22', '2026-03-24', 0),
+  (2, 'Marriott Zurich', 'Zurich', 'Upscale', '2026-03-14', '2026-03-21', 0),
+  (3, 'Hyatt Regency Basel', 'Basel', 'Upper Upscale', '2026-03-02', '2026-03-20', 0),
+  (4, 'Radisson Blu Lucerne', 'Lucerne', 'Midscale', '2026-03-24', '2026-03-25', 0),
+  (5, 'Best Western Bern', 'Bern', 'Upper Midscale', '2026-03-23', '2026-03-25', 0),
+  (6, 'InterContinental Geneva', 'Geneva', 'Luxury', '2026-03-23', '2026-03-28', 0),
+  (7, 'Sheraton Zurich', 'Zurich', 'Upper Upscale', '2026-03-27', '2026-04-02', 0),
+  (8, 'Holiday Inn Basel', 'Basel', 'Upper Midscale', '2026-03-24', '2026-04-09', 0),
+  (9, 'Courtyard Zurich', 'Zurich', 'Upscale', '2026-03-03', '2026-03-13', 0),
+  (10, 'Comfort Inn Bern', 'Bern', 'Midscale', '2026-03-04', '2026-03-16', 0);</pre>
+          </details>
+
           <div class="step-grid">
             <div class="step-num">1</div>
             <div class="step-content">
               <h3>Connect to your DB System</h3>
               <p>Open MySQL Studio from the OCI Console. Studio automatically connects to your target MySQL DB System. You'll see the schema browser populated with databases and tables on the left panel.</p>
+
+              <div class="diagram-card" style="margin-top:12px;">
+                <img
+                  src={`${baseUrl}assets/open-sql.png`}
+                  alt="Open a new SQL worksheet in MySQL Studio"
+                  loading="lazy"
+                  style="width:100%;height:auto;max-width:840px;display:block;"
+                />
+              </div>
             </div>
 
             <div class="step-num">2</div>
             <div class="step-content">
               <h3>Explore the sample database</h3>
-              <p>Browse the <code>amld_workshop</code> schema. Click on tables to view their structure, columns, indexes, and row counts. This is your sample dataset for the workshop exercises.</p>
-              <div class="code-block"><span class="comment">-- Inspect table structure</span>
-      <span class="kw">DESCRIBE</span> amld_workshop.products;
+              <p>Browse your <code>&lt;username&gt;</code> schema and locate the <code>hotels</code> table, then run the SQL queries below to understand your data.</p>
 
-      <span class="comment">-- Quick data peek</span>
-      <span class="kw">SELECT</span> * <span class="kw">FROM</span> amld_workshop.products <span class="kw">LIMIT</span> <span class="num">10</span>;</div>
+              <pre class="code-block">-- Inspect table structure
+DESCRIBE hotels;
+
+-- Quick data peek
+SELECT * FROM hotels LIMIT 10;</pre>
+
+              <div class="diagram-card" style="margin-top:12px;">
+                <img
+                  src={`${baseUrl}assets/viz-table.png`}
+                  alt="Viewing query results as a table in MySQL Studio"
+                  loading="lazy"
+                  style="width:100%;height:auto;max-width:840px;display:block;"
+                />
+              </div>
             </div>
 
             <div class="step-num">3</div>
             <div class="step-content">
               <h3>Run an analytical query</h3>
-              <p>Run a query and observe how HeatWave automatically offloads it to the in-memory cluster. Use the Explain Plan button to confirm offloading.</p>
-              <div class="code-block"><span class="comment">-- Analytics on HeatWave — check Explain Plan for RAPID engine</span>
-      <span class="kw">SELECT</span> category, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> cnt, <span class="fn">AVG</span>(price) <span class="kw">AS</span> avg_price
-      <span class="kw">FROM</span> amld_workshop.products
-      <span class="kw">GROUP BY</span> category
-      <span class="kw">ORDER BY</span> avg_price <span class="kw">DESC</span>;</div>
-            </div>
-          </div>
+              <p>Run a query and observe how HeatWave automatically offloads it to the in-memory cluster. With the integrated data visualization for SQL queries, you can visualize the query results directly in Studio.</p>
+              <pre class="code-block">-- Average stay length (nights) by city and price tier
+SELECT
+  location,
+  price_tier,
+  COUNT(*) AS hotel_count,
+  AVG(DATEDIFF(checkout_date, checkin_date)) AS avg_nights
+FROM hotels
+GROUP BY location, price_tier
+ORDER BY avg_nights DESC;</pre>
 
-          <div class="callout">
-            <p><strong>Tip:</strong> In the SQL Editor, click the <em>Explain Plan</em> button next to Run. If the query is offloaded to HeatWave, you'll see the <code>RAPID</code> engine in the execution plan rather than <code>InnoDB</code>. This confirms the query uses the in-memory columnar engine.</p>
+              <div class="diagram-card" style="margin-top:12px;">
+                <img
+                  src={`${baseUrl}assets/data-viz.png`}
+                  alt="Integrated data visualization of SQL query results in MySQL Studio"
+                  loading="lazy"
+                  style="width:100%;height:auto;max-width:840px;display:block;"
+                />
+              </div>
+            </div>
           </div>
         </section>
 
